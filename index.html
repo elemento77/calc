@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Talent Calculator — Ranger / Barbarian</title>
+  <title>Talent Calculator — Ranger / Barbarian / Necromancer</title>
   <style>
     :root{
       --bg:#0e0f12;
@@ -86,22 +86,18 @@
       position: relative;
     }
 
-    /* STATUS VISUAL: 0 pts vermelho / >0 verde */
-    .card.skill-off{
-      box-shadow: 0 0 0 1px rgba(255,77,77,.10) inset;
-    }
-    .card.skill-on{
-      box-shadow: 0 0 0 1px rgba(124,255,107,.10) inset;
-    }
+    /* STATUS: 0 pts vermelho / >0 verde */
+    .card.skill-off{ box-shadow: 0 0 0 1px rgba(255,77,77,.10) inset; }
+    .card.skill-on{  box-shadow: 0 0 0 1px rgba(124,255,107,.10) inset; }
 
     .name{ font-weight:900; font-size:16px; }
     .skill-off .name{ color: var(--warn); }
-    .skill-on .name{ color: var(--accent); }
+    .skill-on  .name{ color: var(--accent); }
 
     .meta{ color:var(--muted); font-size:13px; margin-top:4px; }
     .desc{ color:#d7d7db; font-size:13px; margin-top:8px; line-height:1.35; }
 
-    /* Valores dinâmicos destacados */
+    /* Valores dinâmicos */
     .val-on{ color: var(--accent); font-weight:900; }
     .val-off{ color: var(--warn); font-weight:900; }
 
@@ -174,6 +170,7 @@
           <select id="classSelect">
             <option value="ranger">Ranger</option>
             <option value="barbarian">Barbarian</option>
+            <option value="necromancer">Necromancer</option>
           </select>
         </div>
 
@@ -194,7 +191,7 @@
         <div class="buildbox">
           <pre class="buildtext" id="summary">-</pre>
         </div>
-        <div class="hint">Dica: o link salva a classe e o build. Ex: <span class="mono">#r:0f0a...</span> ou <span class="mono">#b:0f0a...</span></div>
+        <div class="hint">Dica: o link salva a classe e o build. Ex: <span class="mono">#r:...</span> / <span class="mono">#b:...</span> / <span class="mono">#n:...</span></div>
       </div>
 
       <div class="right">
@@ -212,17 +209,53 @@ function fmt1(n){ return Number(n).toFixed(1).replace(".", ","); }
 function gp(n){ return Number(n).toLocaleString("pt-BR") + " gp"; }
 function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
 
-// Destaque de valores dinâmicos:
-// - se L==0: vermelho
-// - se L>0: verde
-function v(L, text){
-  const cls = (L > 0) ? "val-on" : "val-off";
+/**
+ * Destaque de valores dinâmicos:
+ * - se L==0: vermelho
+ * - se L>0: verde
+ */
+function v(L0, text){
+  const cls = (L0 > 0) ? "val-on" : "val-off";
   return `<span class="${cls}">${text}</span>`;
 }
 
-// Quando L==0, mostramos os valores do "primeiro ponto" (L=1) pra pessoa entender o que ganha.
-// Mas a cor fica vermelha (inativa).
-function displayLevel(L){ return (L === 0) ? 1 : L; }
+/**
+ * Quando L==0, mostramos os valores do "primeiro ponto" (L=1)
+ * pra pessoa entender o que ganha, mas a cor fica vermelha (inativa).
+ */
+function displayLevel(L0){ return (L0 === 0) ? 1 : L0; }
+
+/** ========= NECRO: summon list =========
+ * Unlocks:
+ * 1: Headless One, Zombie, Skeleton, Skeletal Archer, Skeletal Mage
+ * 9: Bone Magi
+ * 11: Patchwork Skeleton
+ * 13: Skeletal Knight
+ * 15: Skeletal Dragon
+ *
+ * (você comentou “aumentando em 2, 3, 5, 7, 9...” — mas os nomes “novos” que você listou
+ * começam em 9/11/13/15, então eu modelei exatamente esses thresholds com nomes.)
+ */
+const NECRO_SUMMON_UNLOCKS = [
+  { level: 1,  name: "Headless One" },
+  { level: 2,  name: "Zombie" },
+  { level: 3,  name: "Skeleton" },
+  { level: 5,  name: "Skeletal Archer" },
+  { level: 7,  name: "Skeletal Mage" },
+  { level: 9,  name: "Bone Magi" },
+  { level: 11, name: "Patchwork Skeleton" },
+  { level: 13, name: "Skeletal Knight" },
+  { level: 15, name: "Skeletal Dragon" },
+];
+
+
+function summonListHTML(L0){
+  const L = displayLevel(L0);
+  const unlocked = NECRO_SUMMON_UNLOCKS.filter(x => x.level <= L).map(x => x.name);
+  // destaca o "conteúdo que muda" em verde/vermelho (já que a lista muda com L)
+  const joined = unlocked.map(n => v(L0, n)).join(", ");
+  return joined || v(L0, "(none)");
+}
 
 /** ========= CLASSES ========= **/
 
@@ -259,20 +292,16 @@ const RANGER = {
         return `${v(L0, mark)} chance to Mark targets, reducing all resistances by ${v(L0, res)} for 3.0s. Hitting Marked targets has ${v(L0, rapid)} chance to trigger Rapid Fire and deal ${v(L0, bonusDmg)} bonus damage.`;
       }
     },
-
-    // ✅ CORREÇÃO PEDIDA:
-    // Sniper Shot: começa em 160% e sobe +10% por ponto até 250%.
-    // (cap em 250%, mesmo com L>10)
     {
       id:"sniper_shot", name:"Sniper Shot", type:"ACTIVE 2", max:15, cost:300, req:"Ranged Weapon",
       describe: (L0) => {
         const L = displayLevel(L0);
-        const dmg = 150 + 10*L; // L=1 => 160, L=15 => 300
+        // ✅ corrigido: 160% no L1 e +10% por ponto até 300% no L15
+        const dmg = 150 + 10*L; // L1=160, L15=300
         const stun = fmt1(2.0 + 0.2*L) + "s";
         return `Channels your focus into a single, devastating shot dealing ${v(L0, dmg+"%")} weapon max damage. The sheer kinetic force knocks the enemy back and leaves them stunned for ${v(L0, stun)}. Moving cancels.`;
       }
     },
-
     {
       id:"vampiric_arrows", name:"Vampiric Arrows", type:"PASSIVE", max:15, cost:400, req:"Ranged Weapon",
       describe: (L0) => {
@@ -386,41 +415,136 @@ const BARBARIAN = {
   ]
 };
 
-const CLASSES = { ranger: RANGER, barbarian: BARBARIAN };
+// ===== NECROMANCER (a partir dos seus prints 1/5/10/15) =====
+const NECROMANCER = {
+  key: "necromancer",
+  label: "Necromancer",
+  skills: [
+    {
+      id:"raise_dead", name:"Raise Dead", type:"PASSIVE", max:15, cost:100, req:"Staff Equipped",
+      describe: (L0) => {
+        const L = displayLevel(L0);
+        const chance = 15 + L; // L1=16%, L5=20%, L10=25%, L15=30%
+        const reanimate = (L >= 15) ? ` At level 15 has a ${v(L0, "20%")} chance to Reanimate victims on kill.` : "";
+        return `Dealing damage have ${v(L0, chance.toFixed(1)+"%")} chance to summon undead.${reanimate}<br><br>
+                Summon list scales with skill level:<br>
+                ${summonListHTML(L0)}`;
+      }
+    },
+    {
+      id:"soul_syphon", name:"Soul Syphon", type:"ACTIVE 1", max:15, cost:100, req:"Staff Equipped",
+      describe: (L0) => {
+        const L = displayLevel(L0);
+        const dmg = 80 + 5*L; // 85 / 105 / 130 / 155
+        const range = 6 + Math.floor((2*L + 4)/5); // ceil(2L/5) + 6 => 7 / 8 / 10 / 12
+        return `Deals ${v(L0, dmg+"%")} Staff Dmg to 3 closest enemies at range ${v(L0, range)} and heals you. Passively allows range ${v(L0, range)} on staff attacks & spellcasting with staffs (PvM).`;
+      }
+    },
+    {
+      id:"necrotic_curse", name:"Necrotic Curse", type:"PASSIVE", max:15, cost:200, req:"Staff Equipped",
+      describe: (L0) => {
+        const L = displayLevel(L0);
+        const chance = 15 + 3*L;     // 18 / 30 / 45 / 60
+        const reduce = 5 + 2*L;      // 7 / 15 / 25 / 35
+        const dur = 5.0 + 0.5*L;     // 5.5 / 7.5 / 10.0 / 12.5
+        return `${v(L0, chance+"%")} Chance to reduce physical & poison resistance on attacks by ${v(L0, reduce+"%")} for ${v(L0, fmt1(dur)+"s")}.`;
+      }
+    },
+    {
+      id:"grasp_dead", name:"Grasp of the Dead", type:"ACTIVE 2", max:15, cost:300, req:"Staff Equipped",
+      describe: (L0) => {
+        const L = displayLevel(L0);
+        const dur = 2.0 + 0.4*L;     // 2.4 / 4.0 / 6.0 / 8.0
+        const dmg = 50 + 2*L;        // 52 / 60 / 70 / 80
+        return `Summons bones for ${v(L0, fmt1(dur)+"s")}. Enemies inside or entering the area are Rooted and take ${v(L0, dmg+"%")} staff physical damage.`;
+      }
+    },
+    {
+      id:"minion_explosion", name:"Minion Explosion", type:"PASSIVE", max:15, cost:400, req:"Staff Equipped",
+      describe: (L0) => {
+        const L = displayLevel(L0);
+        const dmg = 5 + L; // 6 / 10 / 15 / 20
+        return `When your army is full, the weakest minion moves to the target and explodes. Deals ${v(L0, dmg+"%")} of its Max HP as poison damage to nearby enemies.`;
+      }
+    },
+    {
+      id:"blood_storm", name:"Blood Storm", type:"ACTIVE 3", max:15, cost:500, req:"Staff Equipped",
+      describe: (L0) => {
+        const L = displayLevel(L0);
+        const drain = 16 - L;        // 15 / 11 / 6 / 1
+        const flat = L;              // 1 / 5 / 10 / 15
+        const heal = 1 + L;          // 2 / 6 / 11 / 16
+        return `Drains ${v(L0, drain+"%")} of your current HP per tick. Each tick deals ${v(L0, flat+"")} damage + ${v(L0, "1%")} of enemy current HP (capped at staff max damage) as physical damage and heals your minions for ${v(L0, heal+"%")} of their max HP.`;
+      }
+    },
+    {
+      id:"undead_mastery", name:"Undead Mastery", type:"PASSIVE", max:15, cost:600, req:"Staff Equipped",
+      describe: (L0) => {
+        const L = displayLevel(L0);
+        const hp = 3*L;              // 3 / 15 / 30 / 45
+        const bonus = 2*L;           // 2 / 10 / 20 / 30
+        return `Minions gain ${v(L0, hp+"")} Max HP and deal ${v(L0, bonus+"")} bonus damage.`;
+      }
+    },
+    {
+      id:"the_long_night", name:"The Long Night", type:"ACTIVE 4", max:15, cost:700, req:"Staff Equipped",
+      describe: (L0) => {
+        const L = displayLevel(L0);
+        const dmg = 45 + 7*L;        // 52 / 80 / 115 / 150
+        const cd = 300 - 15*L;       // 285 / 225 / 150 / 75
+        return `Manifest the Night King form for 10s. Every second, deals ${v(L0, dmg+"%")} Staff Max Dmg as Cold and Freezes enemies within 10 tiles. Each hit heals you for ${v(L0, "50%")} of total damage dealt. Cooldown: ${v(L0, cd+"s")}.`;
+      }
+    },
+  ]
+};
+
+const CLASSES = {
+  ranger: RANGER,
+  barbarian: BARBARIAN,
+  necromancer: NECROMANCER,
+};
 
 /** ========= STATE (por classe) ========= **/
 const levelsByClass = {
   ranger: Object.fromEntries(RANGER.skills.map(s => [s.id, 0])),
   barbarian: Object.fromEntries(BARBARIAN.skills.map(s => [s.id, 0])),
+  necromancer: Object.fromEntries(NECROMANCER.skills.map(s => [s.id, 0])),
 };
+
 let currentClassKey = "ranger";
 
 /** ========= BUILD CODE (URL) =========
- * Formato: #r:<hex> ou #b:<hex>
- * hex = 1 char por skill (0..15 => 0..f), na ordem do array da classe.
+ * Formato: #r:<hex> / #b:<hex> / #n:<hex>
+ * hex = 1 char por skill (0..15 => 0..f), na ordem do array.
  **/
-function classPrefix(key){ return key === "barbarian" ? "b" : "r"; }
-function keyFromPrefix(p){ return (p === "b") ? "barbarian" : "ranger"; }
-
+function classPrefix(key){
+  if (key === "barbarian") return "b";
+  if (key === "necromancer") return "n";
+  return "r";
+}
+function keyFromPrefix(p){
+  if (p === "b") return "barbarian";
+  if (p === "n") return "necromancer";
+  return "ranger";
+}
 function encodeBuildFor(key){
   const cls = CLASSES[key];
   const lv = levelsByClass[key];
   const hex = cls.skills.map(s => (lv[s.id] || 0).toString(16)).join("");
   return `${classPrefix(key)}:${hex}`;
 }
-
 function decodeBuildFromHash(){
   const raw = (location.hash || "").slice(1).trim().toLowerCase();
   if (!raw) return false;
 
-  const m = raw.match(/^([rb]):([0-9a-f]+)$/);
+  const m = raw.match(/^([rbn]):([0-9a-f]+)$/);
   if (!m) return false;
 
   const key = keyFromPrefix(m[1]);
   const cls = CLASSES[key];
   const hex = m[2];
 
-  if (hex.length !== cls.skills.length) return false;
+  if (!cls || hex.length !== cls.skills.length) return false;
 
   const lv = levelsByClass[key];
   for (let i=0;i<cls.skills.length;i++){
@@ -566,7 +690,6 @@ function setLevel(id, newLevel){
   const delta = newLevel - current;
   if (delta === 0) return;
 
-  // cap de pontos
   const spent = spentPointsFor(currentClassKey);
   if (delta > 0 && spent + delta > TOTAL_POINTS){
     newLevel = current + Math.max(0, TOTAL_POINTS - spent);
