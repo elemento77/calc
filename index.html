@@ -431,15 +431,16 @@ const NECROMANCER = {
                 ${summonListHTML(L0)}`;
       }
     },
-    {
-      id:"soul_syphon", name:"Soul Syphon", type:"ACTIVE 1", max:15, cost:100, req:"Staff Equipped",
-      describe: (L0) => {
-        const L = displayLevel(L0);
-        const dmg = 80 + 5*L; // 85 / 105 / 130 / 155
-        const range = 6 + Math.floor((2*L + 4)/5); // ceil(2L/5) + 6 => 7 / 8 / 10 / 12
-        return `Deals ${v(L0, dmg+"%")} Staff Dmg to 3 closest enemies at range ${v(L0, range)} and heals you. Passively allows range ${v(L0, range)} on staff attacks & spellcasting with staffs (PvM).`;
-      }
-    },
+{
+  id:"soul_syphon", name:"Soul Syphon", type:"ACTIVE 1", max:15, cost:100, req:"Staff Equipped",
+  describe: (L0) => {
+    const L = displayLevel(L0);
+    const dmg = 80 + 5*L;                 // 85 / 105 / 130 / 155
+    const range = 7 + Math.floor(L/3);    // ✅ 8@3, 9@6, 10@9, 11@12, 12@15
+    return `Deals ${v(L0, dmg+"%")} Staff Dmg to 3 closest enemies at range ${v(L0, range)} and heals you. Passively allows range ${v(L0, range)} on staff attacks & spellcasting with staffs (PvM).`;
+  }
+},
+
     {
       id:"necrotic_curse", name:"Necrotic Curse", type:"PASSIVE", max:15, cost:200, req:"Staff Equipped",
       describe: (L0) => {
