@@ -1,563 +1,802 @@
+
+
 <!doctype html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Talent Calculator — Ranger / Barbarian / Necromancer / Wizard</title>
+  <title>Talent Calculator</title>
   <style>
     :root{
-      --bg:#0e0f12;
-      --card:#161821;
-      --text:#e8e8ea;
-      --muted:#a9abb3;
-      --accent:#7CFF6B; /* verde */
-      --warn:#ff4d4d;   /* vermelho */
-      --border:rgba(255,255,255,.10);
-      --border2:rgba(255,255,255,.08);
+      --bg:#0b0f14;
+      --panel:#101723;
+      --panel2:#0f1622;
+      --line:#243245;
+      --text:#e7eefc;
+      --muted:#93a4bd;
+      --good:#35ff6a;
+      --bad:#ff3b3b;
+      --warn:#ffd65a;
+      --cyan:#32d6ff;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
-    *{ box-sizing:border-box; }
+    *{box-sizing:border-box}
     body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background:var(--bg);
-      color:var(--text);
+      margin:0; background: radial-gradient(1200px 700px at 20% 5%, rgba(40,120,255,.18), transparent 60%),
+                         radial-gradient(1000px 650px at 85% 20%, rgba(0,255,160,.10), transparent 55%),
+                         var(--bg);
+      color:var(--text); font-family:var(--sans);
     }
-    .wrap{ max-width: 1120px; margin: 22px auto; padding: 0 16px 40px; }
-
-    .top{
-      display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;
-      background: linear-gradient(180deg, rgba(124,255,107,.10), transparent);
-      border:1px solid var(--border2);
-      border-radius:14px;
-      padding:14px 16px;
+    .wrap{max-width:1080px; margin:26px auto; padding:0 14px;}
+    header{
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
+      padding:14px 16px; border:1px solid var(--line); background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border-radius: var(--radius); box-shadow: var(--shadow);
     }
-    .title{ font-weight:800; letter-spacing:.5px; }
-    .subtitle{ color:var(--muted); font-size:13px; margin-top:4px; }
-
-    .stats{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+    .leftHead{display:flex; flex-direction:column; gap:6px;}
+    .title{font-size:18px; font-weight:800; letter-spacing:.3px}
+    .sub{color:var(--muted); font-size:13px}
+    .rightHead{display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end}
+    select, button, input{
+      border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--text);
+      padding:10px 12px; font-size:13px; outline:none;
+    }
+    select{min-width:190px}
+    button{cursor:pointer; transition:.12s transform, .12s opacity; font-weight:700}
+    button:hover{transform: translateY(-1px)}
+    button:active{transform: translateY(0px); opacity:.85}
+    .btnPrimary{border-color: rgba(50,214,255,.35); background: rgba(50,214,255,.08)}
+    .btnGood{border-color: rgba(53,255,106,.35); background: rgba(53,255,106,.08)}
+    .btnBad{border-color: rgba(255,59,59,.35); background: rgba(255,59,59,.08)}
+    .btnWarn{border-color: rgba(255,214,90,.35); background: rgba(255,214,90,.08)}
     .pill{
-      background: rgba(255,255,255,.06);
-      border:1px solid var(--border2);
-      padding:8px 10px;
-      border-radius:999px;
-      color:var(--muted);
-      font-size:14px;
-      white-space:nowrap;
-      display:flex; align-items:center; gap:8px;
+      display:inline-flex; gap:8px; align-items:center;
+      padding:9px 12px; border-radius:999px; border:1px solid var(--line); background:rgba(0,0,0,.20)
     }
-    .pill b{ color:var(--text); }
-
-    .ok{ color:var(--accent); }
-    .bad{ color:var(--warn); }
-
-    button{
-      background: rgba(255,255,255,.08);
-      color:var(--text);
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:9px 12px;
-      cursor:pointer;
-      font-weight:600;
+    .pill b{font-family:var(--mono); font-size:13px}
+    .pill .good{color:var(--good)}
+    .pill .bad{color:var(--bad)}
+    main{margin-top:14px; display:grid; grid-template-columns: 1fr; gap:14px;}
+    .panel{
+      border:1px solid var(--line); border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      box-shadow: var(--shadow);
+      overflow:hidden;
     }
-    button:hover{ background: rgba(255,255,255,.12); }
-    button:disabled{ opacity:.45; cursor:not-allowed; }
-
-    select{
-      background: rgba(0,0,0,.25);
-      color: var(--text);
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:8px 10px;
-      font-weight:800;
-      cursor:pointer;
+    .panelHead{
+      padding:14px 16px; display:flex; gap:10px; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--line);
+      background: rgba(0,0,0,.18);
     }
-
-    .grid{ display:grid; grid-template-columns: 1fr; gap:12px; margin-top:14px; }
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--border2);
-      border-radius:14px;
-      padding:14px 14px;
+    .panelHead .h{
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .panelHead .h .k{font-weight:900; letter-spacing:.3px}
+    .panelHead .h .m{font-size:12px; color:var(--muted)}
+    .panelHead .r{display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end}
+    .skills{padding:14px; display:flex; flex-direction:column; gap:12px;}
+    .skill{
+      border:1px solid var(--line); border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.14));
+      padding:12px 12px;
       display:grid;
-      grid-template-columns: 1fr auto;
-      gap:10px;
-      min-height: 132px;
-      position: relative;
+      grid-template-columns: 220px 1fr;
+      gap:12px;
     }
-
-    /* STATUS: 0 pts vermelho / >0 verde */
-    .card.skill-off{ box-shadow: 0 0 0 1px rgba(255,77,77,.10) inset; }
-    .card.skill-on{  box-shadow: 0 0 0 1px rgba(124,255,107,.10) inset; }
-
-    .name{ font-weight:900; font-size:16px; }
-    .skill-off .name{ color: var(--warn); }
-    .skill-on  .name{ color: var(--accent); }
-
-    .meta{ color:var(--muted); font-size:13px; margin-top:4px; }
-    .desc{ color:#d7d7db; font-size:13px; margin-top:8px; line-height:1.35; }
-
-    /* Valores dinâmicos */
-    .val-on{ color: var(--accent); font-weight:900; }
-    .val-off{ color: var(--warn); font-weight:900; }
-
-    .controls{ display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
-    .row{ display:flex; gap:8px; align-items:center; }
-    input[type="number"]{
-      width:78px;
-      padding:9px 8px;
-      border-radius:10px;
-      border:1px solid var(--border);
-      background: rgba(0,0,0,.25);
-      color:var(--text);
-      font-weight:800;
-      text-align:center;
+    @media (max-width: 820px){
+      .skill{grid-template-columns: 1fr; }
     }
-
-    .small{ color:var(--muted); font-size:13px; }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
-
-    .footer{
-      margin-top:14px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:flex-start;
-      justify-content:space-between;
-      border:1px solid var(--border2);
-      border-radius:14px;
-      padding:12px 14px;
+    .skillLeft{
+      display:flex; flex-direction:column; gap:10px;
+      border-right:1px solid rgba(255,255,255,.06);
+      padding-right:12px;
+    }
+    @media (max-width: 820px){
+      .skillLeft{border-right:none; padding-right:0; border-bottom:1px solid rgba(255,255,255,.06); padding-bottom:12px;}
+    }
+    .skillTop{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    }
+    .skillName{font-weight:900; letter-spacing:.2px}
+    .skillMeta{display:flex; flex-direction:column; gap:6px; align-items:flex-end}
+    .badge{
+      font-family: var(--mono); font-size:12px; padding:6px 8px; border-radius:10px;
+      border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.03);
+      color: var(--muted);
+      text-transform:uppercase;
     }
-    .footer .left{ display:flex; flex-direction:column; gap:6px; min-width: 280px; flex: 1; }
-    .footer .right{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-
-    .buildbox{
-      border:1px solid var(--border2);
-      background: rgba(0,0,0,.25);
-      border-radius:12px;
-      padding:10px 12px;
-      width: 100%;
-      max-width: 760px;
+    .badge.active{color:var(--cyan)}
+    .badge.passive{color: #cfd7ea}
+    .badge.on{color:var(--good); border-color: rgba(53,255,106,.28); background: rgba(53,255,106,.06)}
+    .badge.off{color:var(--bad); border-color: rgba(255,59,59,.28); background: rgba(255,59,59,.06)}
+    .levelRow{display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .levelRow .lvl{
+      font-family:var(--mono); font-size:12px; color:var(--muted);
     }
-    .buildtext{
-      white-space:pre-wrap;
-      word-break:break-word;
-      margin:0;
-      font-size:13px;
-      line-height:1.35;
-      color:#e3e3e6;
+    .controls{display:flex; gap:8px; align-items:center}
+    .mini{
+      padding:8px 10px; border-radius:12px; font-weight:900; font-family:var(--mono);
+      width:42px; text-align:center;
     }
-    .hint{ color: var(--muted); font-size: 12px; margin-top: 6px; }
-
-    @media (min-width: 950px){
-      .grid{ grid-template-columns: 1fr 1fr; }
+    .mini:disabled{opacity:.4; cursor:not-allowed}
+    .req{
+      font-size:12px; color: var(--muted);
+      display:flex; flex-direction:column; gap:4px;
     }
+    .req b{color:var(--warn); font-family:var(--mono); font-size:12px}
+    .skillRight{
+      display:flex; flex-direction:column; gap:8px; justify-content:center;
+    }
+    .desc{
+      font-size:13px; line-height:1.35; color:#eaf1ff;
+    }
+    .desc .val{font-weight:900; font-family:var(--mono)}
+    .desc .val.good{color:var(--good)}
+    .desc .val.bad{color:var(--bad)}
+    .desc .muted{color:var(--muted)}
+    .hint{
+      font-size:12px; color:var(--muted);
+    }
+    .footerNote{
+      padding:14px 16px; border-top:1px solid var(--line); color:var(--muted); font-size:12px;
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .mono{font-family:var(--mono)}
+    .toast{
+      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+      background:rgba(0,0,0,.75); border:1px solid rgba(255,255,255,.12);
+      padding:10px 12px; border-radius:12px; color:var(--text); font-size:13px;
+      opacity:0; pointer-events:none; transition:.18s opacity;
+      box-shadow: var(--shadow);
+    }
+    .toast.show{opacity:1}
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div>
-        <div class="title">Talent Calculator</div>
-        <div class="subtitle">Escolha a classe, distribua pontos, veja custo total e compartilhe o build por link.</div>
-      </div>
-
-      <div class="stats">
-        <div class="pill">
-          Classe:
-          <select id="classSelect">
-            <option value="ranger">Ranger</option>
-            <option value="barbarian">Barbarian</option>
-            <option value="necromancer">Necromancer</option>
-            <option value="wizard">Wizard</option>
-          </select>
-        </div>
-
-        <div class="pill">Pontos: <b id="spent">0</b>/<b id="total">60</b> (<b id="remain" class="ok">60</b> restantes)</div>
-        <div class="pill">Custo total: <b id="gold" class="mono">0 gp</b></div>
-
-        <button id="resetBtn" title="Zerar talentos desta classe">Reset</button>
-        <button id="copyBtn" title="Copiar link com build">Copiar link</button>
-      </div>
+<div class="wrap">
+  <header>
+    <div class="leftHead">
+      <div class="title">Talent Calculator</div>
+      <div class="sub">0 pontos = vermelho · com pontos = verde · Export/Import compartilha build</div>
     </div>
+    <div class="rightHead">
+      <select id="classSelect" aria-label="Classe">
+        <option value="ranger">Ranger</option>
+        <option value="barbarian">Barbarian</option>
+        <option value="necromancer">Necromancer</option>
+        <option value="wizard">Wizard</option>
+        <option value="paladin">Paladin</option>
+      </select>
 
-    <div class="grid" id="list"></div>
-
-    <div class="footer">
-      <div class="left">
-        <div class="small">Build code: <span class="mono" id="code">-</span></div>
-        <div class="small">Resumo (pra colar no Discord):</div>
-        <div class="buildbox">
-          <pre class="buildtext" id="summary">-</pre>
-        </div>
-        <div class="hint">Dica: o link salva a classe e o build. Ex: <span class="mono">#r:...</span> / <span class="mono">#b:...</span> / <span class="mono">#n:...</span> / <span class="mono">#w:...</span></div>
-      </div>
-
-      <div class="right">
-        <button id="copySummaryBtn">Copiar resumo</button>
-      </div>
+      <button class="btnWarn" id="resetBtn">Reset</button>
+      <button class="btnGood" id="exportBtn">Export</button>
+      <button class="btnPrimary" id="importBtn">Import</button>
     </div>
-  </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="panelHead">
+        <div class="h">
+          <div class="k" id="classTitle">Ranger</div>
+          <div class="m" id="classSubtitle">Distribua seus pontos e compartilhe a build.</div>
+        </div>
+        <div class="r">
+          <div class="pill">
+            <span>Pontos restantes</span>
+            <b id="pointsLeft" class="good">60</b>
+          </div>
+          <div class="pill">
+            <span>Total</span>
+            <b id="pointsTotal">60</b>
+          </div>
+          <div class="pill">
+            <span>Gold Investido</span>
+            <b id="goldTotal" class="warn">0gp</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="skills" id="skills"></div>
+
+      <div class="footerNote">
+        <span>Hash salva automaticamente na URL (ex: <span class="mono">#r:...</span>)</span>
+        <span>Dica: o Import aceita link completo ou só o código após <span class="mono">#</span>.</span>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-/** ========= CONFIG ========= **/
+/* =========================
+   Helpers
+========================= */
 const TOTAL_POINTS = 60;
 
-/** ========= HELPERS ========= **/
-function fmt1(n){ return Number(n).toFixed(1).replace(".", ","); }
-function fmt0(n){ return String(Math.floor(Number(n))); }
-function gp(n){ return Number(n).toLocaleString("pt-BR") + " gp"; }
-function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+function fmt0(n){ return (Math.round(n)).toString(); }
+function fmt1(n){ return (Math.round(n*10)/10).toFixed(1); }
+function lerp(a,b,t){ return a + (b-a)*t; }
+function piecewise(L, points){
+  if (L <= points[0].l) return points[0].v;
+  for (let i=0;i<points.length-1;i++){
+    const A = points[i], B = points[i+1];
+    if (L <= B.l){
+      const t = (L - A.l) / (B.l - A.l);
+      return lerp(A.v, B.v, t);
+    }
+  }
+  return points[points.length-1].v;
+}
+// valor destacado: 0 => vermelho, >0 => verde
+function v(level, text){
+  const cls = level>0 ? "good" : "bad";
+  return `<span class="val ${cls}">${text}</span>`;
+}
+function displayLevel(L0){ return clamp(L0, 0, 15); }
 
-/**
- * Destaque de valores dinâmicos:
- * - se L==0: vermelho
- * - se L>0: verde
- */
-function v(L0, text){
-  const cls = (L0 > 0) ? "val-on" : "val-off";
-  return `<span class="${cls}">${text}</span>`;
+function showToast(msg){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(()=> el.classList.remove("show"), 1600);
 }
 
-/**
- * Quando L==0, mostramos os valores do "primeiro ponto" (L=1)
- * pra pessoa entender o que ganha, mas a cor fica vermelha (inativa).
- */
-function displayLevel(L0){ return (L0 === 0) ? 1 : L0; }
-
-/** ========= NECRO SUMMON TIERS (final) ========= **/
-const NECRO_SUMMON_UNLOCKS = [
-  { level: 1,  name: "Headless One" },
-  { level: 2,  name: "Zombie" },
-  { level: 3,  name: "Skeleton" },
-  { level: 5,  name: "Skeletal Archer" },
-  { level: 7,  name: "Skeletal Mage" },
-  { level: 9,  name: "Bone Magi" },
-  { level: 11, name: "Patchwork Skeleton" },
-  { level: 13, name: "Skeletal Knight" },
-  { level: 15, name: "Skeletal Dragon" },
-];
-
-function summonListHTML(L0){
-  const L = displayLevel(L0);
-  const unlocked = NECRO_SUMMON_UNLOCKS.filter(x => x.level <= L).map(x => x.name);
-  const joined = unlocked.map(n => v(L0, n)).join(", ");
-  return joined || v(L0, "(none)");
+function classPrefix(key){
+  if (key === "barbarian") return "b";
+  if (key === "necromancer") return "n";
+  if (key === "wizard") return "w";
+  if (key === "paladin") return "p";
+  return "r"; // ranger
+}
+function keyFromPrefix(p){
+  if (p === "b") return "barbarian";
+  if (p === "n") return "necromancer";
+  if (p === "w") return "wizard";
+  if (p === "p") return "paladin";
+  return "ranger";
 }
 
-/** ========= CLASSES ========= **/
+function encodeLevelsToHex(levels, skills){
+  // 4 bits per skill (0-15). Two skills per byte => hex string.
+  const bytes = [];
+  for (let i=0; i<skills.length; i+=2){
+    const a = clamp(levels[skills[i].id] ?? 0, 0, 15);
+    const b = (i+1<skills.length) ? clamp(levels[skills[i+1].id] ?? 0, 0, 15) : 0;
+    bytes.push(((a & 0xF) << 4) | (b & 0xF));
+  }
+  return bytes.map(x => x.toString(16).padStart(2,'0')).join('');
+}
+function decodeHexToLevels(hex, skills){
+  const out = {};
+  const bytes = [];
+  for (let i=0;i<hex.length;i+=2){
+    const s = hex.slice(i,i+2);
+    if (!/^[0-9a-fA-F]{2}$/.test(s)) break;
+    bytes.push(parseInt(s, 16));
+  }
+  let si = 0;
+  for (let bi=0; bi<bytes.length && si<skills.length; bi++){
+    const a = (bytes[bi] >> 4) & 0xF;
+    const b = bytes[bi] & 0xF;
+    out[skills[si].id] = a; si++;
+    if (si<skills.length){ out[skills[si].id] = b; si++; }
+  }
+  // default missing to 0
+  for (const s of skills){
+    if (out[s.id] == null) out[s.id] = 0;
+  }
+  return out;
+}
 
-// ===== RANGER (final) =====
+function pointsSpent(levels, skills){
+  let sum = 0;
+  for (const s of skills) sum += clamp(levels[s.id] ?? 0, 0, s.max);
+  return sum;
+}
+
+function goldSpent(levels, skills){
+  let sum = 0;
+  for (const s of skills){
+    const L = clamp(levels[s.id] ?? 0, 0, s.max);
+    sum += L * (s.cost || 0);
+  }
+  return sum;
+}
+
+/* =========================
+   Class-specific helpers
+========================= */
+// Paladin tiles breakpoint: 0-2:7 | 3-5:8 | 6-8:9 | 9-11:10 | 12-14:11 | 15:12
+function paladinTiles(L){
+  if (L >= 15) return 12;
+  if (L >= 12) return 11;
+  if (L >= 9)  return 10;
+  if (L >= 6)  return 9;
+  if (L >= 3)  return 8;
+  return 7;
+}
+// Necro Soul Syphon range breakpoint: 8@3, 9@6, 10@9, 11@12, 12@15 (assumindo 7 antes de 3)
+function necroSyphonRange(L){
+  if (L >= 15) return 12;
+  if (L >= 12) return 11;
+  if (L >= 9)  return 10;
+  if (L >= 6)  return 9;
+  if (L >= 3)  return 8;
+  return 7;
+}
+
+/* =========================
+   DATA — CLASSES (final atualizado)
+========================= */
+
+// ===== RANGER =====
 const RANGER = {
-  key: "ranger",
-  label: "Ranger",
-  skills: [
+  key:"ranger",
+  label:"Ranger",
+  skills:[
     {
-      id:"sharpshooter", name:"Sharpshooter", type:"PASSIVE", max:15, cost:100, req:"Ranged Weapon",
-      describe: (L0) => {
+      id:"sharpshooter", name:"Sharpshooter", type:"PASSIVE", max:15, cost:100, req:"Ranged Weap",
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const range = Math.floor(L/5);
-        const bonus = 10 + 6*L;
-        return `Increases attacks range by ${v(L0, "+"+range)} tiles. Deals up to ${v(L0, bonus+"%")} bonus damage based on distance.`;
+        const tiles = piecewise(L, [{l:0,v:0},{l:5,v:1},{l:10,v:2},{l:15,v:3}]);
+        const bonus = piecewise(L, [{l:0,v:16},{l:5,v:40},{l:10,v:70},{l:15,v:100}]);
+        return `Increases attacks range by ${v(L0, "+"+fmt0(tiles))} tiles. Deals up to ${v(L0, fmt0(bonus)+"%")} bonus damage based on distance.`;
       }
     },
     {
-      id:"spirit_wolf", name:"Spirit Wolf", type:"ACTIVE 1", max:15, cost:100, req:"Ranged Weapon",
-      describe: (L0) => {
+      id:"spirit_wolf", name:"Spirit Wolf", type:"ACTIVE 1", max:15, cost:100, req:"Ranged Weap",
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const hp = 80 + 12*L;
-        return `Summons a Spirit Wolf with ${v(L0, hp+" HP")}. Active Use: Using the skill again commands the wolf to Taunt all nearby enemies and heals the wolf.`;
+        const hp = piecewise(L, [{l:0,v:92},{l:5,v:140},{l:10,v:200},{l:15,v:260}]);
+        return `Summons a Spirit Wolf with ${v(L0, fmt0(hp)+" HP")}. Active Use: Using the skill again commands the wolf to Taunt all nearby enemies and heals the wolf.`;
       }
     },
     {
-      id:"hunters_mark", name:"Hunter's Mark", type:"PASSIVE", max:15, cost:200, req:"Ranged Weapon",
-      describe: (L0) => {
+      id:"hunters_mark", name:"Hunter's Mark", type:"PASSIVE", max:15, cost:200, req:"Ranged Weap",
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const mark = fmt1(5 + 1.5*L) + "%";
-        const res = (5 + 1*L) + "%";
-        const rapid = (5 + 3*L) + "%";
-        const bonusDmg = L;
-        return `${v(L0, mark)} chance to Mark targets, reducing all resistances by ${v(L0, res)} for 3.0s. Hitting Marked targets has ${v(L0, rapid)} chance to trigger Rapid Fire and deal ${v(L0, bonusDmg)} bonus damage.`;
+        const chance = piecewise(L, [{l:0,v:6.5},{l:5,v:12.5},{l:10,v:20},{l:15,v:27.5}]);
+        const resist = piecewise(L, [{l:0,v:6},{l:5,v:10},{l:10,v:15},{l:15,v:20}]);
+        const rf = piecewise(L, [{l:0,v:8},{l:5,v:20},{l:10,v:35},{l:15,v:50}]);
+        const dmg = piecewise(L, [{l:0,v:1},{l:5,v:5},{l:10,v:10},{l:15,v:15}]);
+        return `${v(L0, fmt1(chance)+"%")} chance to Mark targets, reducing all resistances by ${v(L0, fmt0(resist)+"%")} for 3.0s. Hitting Marked targets has ${v(L0, fmt0(rf)+"%")} chance to trigger Rapid Fire and deal ${v(L0, fmt0(dmg))} bonus damage.`;
       }
     },
     {
-      id:"sniper_shot", name:"Sniper Shot", type:"ACTIVE 2", max:15, cost:300, req:"Ranged Weapon",
-      describe: (L0) => {
+      id:"sniper_shot", name:"Sniper Shot", type:"ACTIVE 2", max:15, cost:300, req:"Ranged Weap",
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        // ✅ final: 160% no L1 e +10% por ponto até 300% no L15
-        const dmg = 150 + 10*L; // L1=160, L15=300
-        const stun = fmt1(2.0 + 0.2*L) + "s";
-        return `Channels your focus into a single, devastating shot dealing ${v(L0, dmg+"%")} weapon max damage. The sheer kinetic force knocks the enemy back and leaves them stunned for ${v(L0, stun)}. Moving cancels.`;
+        // fix: 160% -> 300% (+10 por level, 160 no lvl1)
+        const dmg = (L<=0) ? 150 : (160 + (L-1)*10); // L0=0 mostra algo "base", mas build começa 160 em 1
+        const stun = piecewise(L, [{l:0,v:2.2},{l:5,v:3.0},{l:10,v:4.0},{l:15,v:5.0}]);
+        return `Channels your focus into a single, devastating shot dealing ${v(L0, fmt0(dmg)+"%")} weapon max damage. The sheer kinetic force knocks the enemy back and leaves them stunned for ${v(L0, fmt1(stun)+"s")}. Moving cancels.`;
       }
     },
     {
-      id:"vampiric_arrows", name:"Vampiric Arrows", type:"PASSIVE", max:15, cost:400, req:"Ranged Weapon",
-      describe: (L0) => {
+      id:"vampiric_arrows", name:"Vampiric Arrows", type:"PASSIVE", max:15, cost:400, req:"Ranged Weap",
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const heal = 5 + L;
-        return `Drains vitality from targets, healing you for ${v(L0, heal+"%")} of the damage dealt.`;
+        const heal = piecewise(L, [{l:0,v:6},{l:5,v:10},{l:10,v:15},{l:15,v:20}]);
+        return `Drains vitality from targets, healing you for ${v(L0, fmt0(heal)+"%")} of the damage dealt.`;
       }
     },
     {
-      id:"triple_ricochet", name:"Triple Ricochet", type:"ACTIVE 3", max:15, cost:500, req:"Ranged Weapon",
-      describe: (L0) => {
+      id:"triple_ricochet", name:"Triple Ricochet", type:"ACTIVE 3", max:15, cost:500, req:"Ranged Weap",
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const shot = 50 + 5*L;
-        return `Fires 3 shots, each dealing ${v(L0, shot+"%")} weapon damage. Ricochets to enemies within 5 tiles.`;
+        const dmg = piecewise(L, [{l:0,v:55},{l:5,v:75},{l:10,v:100},{l:15,v:125}]);
+        return `Fires 3 shots, each dealing ${v(L0, fmt0(dmg)+"%")} weapon damage. Ricochets to enemies within 5 tiles.`;
       }
     },
     {
-      id:"frost_arrows", name:"Frost Arrows", type:"PASSIVE", max:15, cost:600, req:"Ranged Weapon",
-      describe: (L0) => {
+      id:"frost_arrows", name:"Frost Arrows", type:"PASSIVE", max:15, cost:600, req:"Ranged Weap",
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const convert = 10 + 6*L;
-        const slow = 30 + 3*L;
-        return `Converts ${v(L0, convert+"%")} of ranged physical damage to cold. Slows enemy movement by ${v(L0, slow+"%")} for 2.0s.`;
+        const conv = piecewise(L, [{l:0,v:16},{l:5,v:40},{l:10,v:70},{l:15,v:100}]);
+        const slow = piecewise(L, [{l:0,v:33},{l:5,v:45},{l:10,v:60},{l:15,v:75}]);
+        return `Converts ${v(L0, fmt0(conv)+"%")} of ranged physical damage to cold. Slows enemy movement by ${v(L0, fmt0(slow)+"%")} for 2.0s.`;
       }
     },
     {
-      id:"rain_of_arrows", name:"Rain of Arrows", type:"ACTIVE 4", max:15, cost:700, req:"Ranged Weapon",
-      describe: (L0) => {
+      id:"rain_of_arrows", name:"Rain of Arrows", type:"ACTIVE 4", max:15, cost:700, req:"Ranged Weap",
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const dur = fmt1(3.0 + 0.2*L) + "s";
-        const dps = 30 + 2*L;
-        return `Rain arrows on a 5-tile radius area for ${v(L0, dur)}, dealing ${v(L0, dps+"%")} weapon damage per second.`;
+        const dur = piecewise(L, [{l:0,v:3.2},{l:5,v:4.0},{l:10,v:5.0},{l:15,v:6.0}]);
+        const dps = piecewise(L, [{l:0,v:32},{l:5,v:40},{l:10,v:50},{l:15,v:60}]);
+        return `Rain arrows on a 5-tile radius area for ${v(L0, fmt1(dur)+"s")} dealing ${v(L0, fmt0(dps)+"%")} weapon damage per second.`;
       }
     },
   ]
 };
 
-// ===== BARBARIAN (final) =====
+// ===== BARBARIAN =====
 const BARBARIAN = {
-  key: "barbarian",
-  label: "Barbarian",
-  skills: [
+  key:"barbarian",
+  label:"Barbarian",
+  skills:[
     {
       id:"berserkers_blood", name:"Berserker's Blood", type:"PASSIVE", max:15, cost:100, req:"2H Melee Weap",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const atk = 100 + 10*L;
-        const hp = 15 + 3*L;
-        return `Increases Attack Speed up to ${v(L0, atk+"%")}, reaching max effect at ${v(L0, hp+"%")} Health.`;
+        const spd = piecewise(L, [{l:0,v:110},{l:5,v:150},{l:10,v:200},{l:15,v:250}]);
+        const hp = piecewise(L, [{l:0,v:18},{l:5,v:30},{l:10,v:45},{l:15,v:60}]);
+        return `Increases Attack Speed up to ${v(L0, fmt0(spd)+"%")}, reaching max effect at ${v(L0, fmt0(hp)+"%")} Health.`;
       }
     },
     {
       id:"savage_regrowth", name:"Savage Regrowth", type:"ACTIVE 1", max:15, cost:100, req:"2H Melee Weap",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const regen = 1 + 2*L;
-        return `Activates below 70% Health. Regenerates up to ${v(L0, regen+"%")} max health based on missing HP. Cost: 1 Mana/sec while healing.`;
+        const regen = piecewise(L, [{l:0,v:3},{l:5,v:11},{l:10,v:21},{l:15,v:31}]);
+        return `Activates below 70% Health. Regenerates up to ${v(L0, fmt0(regen)+"%")} max health based on missing HP. Cost: 1 Mana/sec while healing.`;
       }
     },
     {
       id:"primal_strength", name:"Primal Strength", type:"PASSIVE", max:15, cost:200, req:"2H Melee Weap",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const bonus = 10*L;
-        const hp = 15 + 3*L;
-        return `Deals up to ${v(L0, bonus+"%")} bonus weapon damage, reaching max effect at ${v(L0, hp+"%")} Health.`;
+        const dmg = piecewise(L, [{l:0,v:10},{l:5,v:50},{l:10,v:100},{l:15,v:150}]);
+        const hp = piecewise(L, [{l:0,v:18},{l:5,v:30},{l:10,v:45},{l:15,v:60}]);
+        return `Deals up to ${v(L0, fmt0(dmg)+"%")} bonus weapon damage, reaching max effect at ${v(L0, fmt0(hp)+"%")} Health.`;
       }
     },
     {
       id:"burning_blood", name:"Burning Blood", type:"ACTIVE 2", max:15, cost:300, req:"2H Melee Weap",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const fire = 5*L;
-        return `Every attack consume 1 HP on hit and deals ${v(L0, fire+"%")} extra fire damage to the target and nearby enemies (AoE).`;
+        const extra = piecewise(L, [{l:0,v:5},{l:5,v:25},{l:10,v:50},{l:15,v:75}]);
+        return `Every attack consume 1 HP on hit and deals ${v(L0, fmt0(extra)+"%")} extra fire damage to the target and nearby enemies (AoE).`;
       }
     },
     {
       id:"brutal_strike", name:"Brutal Strike", type:"PASSIVE", max:15, cost:400, req:"2H Melee Weap",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const chance = 3*L;
-        const bonus = L;
-        return `Attacks have a ${v(L0, chance+"%")} chance to deal ${v(L0, bonus)} bonus damage and STUN the target for 1.5s.`;
+        const chance = piecewise(L, [{l:0,v:3},{l:5,v:15},{l:10,v:30},{l:15,v:45}]);
+        const dmg = piecewise(L, [{l:0,v:1},{l:5,v:5},{l:10,v:10},{l:15,v:15}]);
+        return `Attacks have a ${v(L0, fmt0(chance)+"%")} chance to dealing ${v(L0, fmt0(dmg))} bonus damage and STUN the target for 1.5s.`;
       }
     },
     {
       id:"undying_rage", name:"Undying Rage", type:"ACTIVE 3", max:15, cost:500, req:"2H Melee Weap",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const cd = 180 - 8*L;
-        return `Immune to damage and DOUBLE weapon and pvm skills damage for 10 seconds. Cooldown: ${v(L0, cd+" seconds")}.`;
+        const cd = piecewise(L, [{l:0,v:172},{l:5,v:140},{l:10,v:100},{l:15,v:60}]);
+        return `Immune to damage and DOUBLE weapon and pvm skills damage for 10 seconds. Cooldown: ${v(L0, fmt0(cd)+" seconds")}.`;
       }
     },
     {
       id:"primal_resistance", name:"Primal Resistance", type:"PASSIVE", max:15, cost:600, req:"2H Melee Weap",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const red = 2*L;
-        return `Reduces incoming non-physical damage by ${v(L0, red+"%")}.`;
+        const red = piecewise(L, [{l:0,v:2},{l:5,v:10},{l:10,v:20},{l:15,v:30}]);
+        return `Reduces incoming non-physical damage by ${v(L0, fmt0(red)+"%")}.`;
       }
     },
     {
       id:"leap_attack", name:"Leap Attack", type:"ACTIVE 4", max:15, cost:700, req:"2H Melee Weap",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const dmg = 50 + 10*L;
-        const cd = 25 - 1*L;
-        return `Leap to location causing impact damage and burning enemies for 5s. Total Damage: ${v(L0, dmg+"%")} weapon max damage. Stuns for 2.0s. Cost: 30% Current HP. Cooldown: ${v(L0, cd+"s")}`;
+        const dmg = piecewise(L, [{l:0,v:60},{l:5,v:100},{l:10,v:150},{l:15,v:200}]);
+        const cd = piecewise(L, [{l:0,v:24},{l:5,v:20},{l:10,v:15},{l:15,v:10}]);
+        return `Leap to location causing impact damage and burning enemies for 5s. Total Damage: ${v(L0, fmt0(dmg)+"%")} weapon max damage. Stuns for 2.0s. Cost: 30% Current HP. Cooldown: ${v(L0, fmt0(cd)+"s")}.`;
       }
     },
   ]
 };
 
-// ===== NECROMANCER (final) =====
+// ===== NECROMANCER =====
 const NECROMANCER = {
-  key: "necromancer",
-  label: "Necromancer",
-  skills: [
+  key:"necromancer",
+  label:"Necromancer",
+  skills:[
     {
       id:"raise_dead", name:"Raise Dead", type:"PASSIVE", max:15, cost:100, req:"Staff Equipped",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const chance = 15 + L; // 16 / 20 / 25 / 30
-        const reanimate = (L >= 15) ? ` At level 15 has a ${v(L0, "20%")} chance to Reanimate victims on kill.` : "";
-        return `Dealing damage have ${v(L0, chance.toFixed(1)+"%")} chance to summon undead.${reanimate}<br><br>
-                Summon list scales with skill level:<br>
-                ${summonListHTML(L0)}`;
+        const chance = piecewise(L, [{l:1,v:16},{l:5,v:20},{l:10,v:25},{l:15,v:30}]);
+        const tiers = [
+          {l:1, name:"Headless One"},
+          {l:2, name:"Zombie"},
+          {l:3, name:"Skeleton"},
+          {l:5, name:"Skeleton Archer"},
+          {l:7, name:"Skeleton Mage"},
+        ];
+        const unlocked = tiers.filter(t => L >= t.l).map(t => t.name);
+        const list = unlocked.length ? unlocked.join(", ") : "—";
+        const extra = (L>=15) ? ` At level 15 has a ${v(L0, "20%")} chance to Reanimate victims on kill.` : "";
+        return `Dealing damage have ${v(L0, fmt1(chance)+"%")} chance to summon undead.${extra} <span class="muted">Summon list scales with skill level:</span> ${v(L0, list)}`;
       }
     },
     {
       id:"soul_syphon", name:"Soul Syphon", type:"ACTIVE 1", max:15, cost:100, req:"Staff Equipped",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const dmg = 80 + 5*L;              // 85 / 105 / 130 / 155
-        const range = 7 + Math.floor(L/3); // ✅ 8@3, 9@6, 10@9, 11@12, 12@15
-        return `Deals ${v(L0, dmg+"%")} Staff Dmg to 3 closest enemies at range ${v(L0, range)} and heals you. Passively allows range ${v(L0, range)} on staff attacks & spellcasting with staffs (PvM).`;
+        const dmg = piecewise(L, [{l:1,v:85},{l:5,v:105},{l:10,v:130},{l:15,v:155}]);
+        const range = necroSyphonRange(L);
+        return `Deals ${v(L0, fmt0(dmg)+"%")} Staff Dmg to 3 closest enemies at range ${v(L0, fmt0(range))} and heals you. Passively allows range ${v(L0, fmt0(range))} on staff attacks & spellcasting with staffs (PvM).`;
       }
     },
     {
       id:"necrotic_curse", name:"Necrotic Curse", type:"PASSIVE", max:15, cost:200, req:"Staff Equipped",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const chance = 15 + 3*L;     // 18 / 30 / 45 / 60
-        const reduce = 5 + 2*L;      // 7 / 15 / 25 / 35
-        const dur = 5.0 + 0.5*L;     // 5.5 / 7.5 / 10.0 / 12.5
-        return `${v(L0, chance+"%")} Chance to reduce physical & poison resistance on attacks by ${v(L0, reduce+"%")} for ${v(L0, fmt1(dur)+"s")}.`;
+        const chance = piecewise(L, [{l:1,v:18},{l:5,v:30},{l:10,v:45},{l:15,v:60}]);
+        const red = piecewise(L, [{l:1,v:7},{l:5,v:15},{l:10,v:25},{l:15,v:35}]);
+        const dur = piecewise(L, [{l:1,v:5.5},{l:5,v:7.5},{l:10,v:10.0},{l:15,v:12.5}]);
+        return `${v(L0, fmt0(chance)+"%")} Chance to reduce physical & poison resistance on attacks by ${v(L0, fmt0(red)+"%")} for ${v(L0, fmt1(dur)+"s")}.`;
       }
     },
     {
       id:"grasp_dead", name:"Grasp of the Dead", type:"ACTIVE 2", max:15, cost:300, req:"Staff Equipped",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const dur = 2.0 + 0.4*L;     // 2.4 / 4.0 / 6.0 / 8.0
-        const dmg = 50 + 2*L;        // 52 / 60 / 70 / 80
-        return `Summons bones for ${v(L0, fmt1(dur)+"s")}. Enemies inside or entering the area are Rooted and take ${v(L0, dmg+"%")} staff physical damage.`;
+        const dur = piecewise(L, [{l:1,v:2.4},{l:5,v:4.0},{l:10,v:6.0},{l:15,v:8.0}]);
+        const dmg = piecewise(L, [{l:1,v:52},{l:5,v:60},{l:10,v:70},{l:15,v:80}]);
+        return `Summons bones for ${v(L0, fmt1(dur)+"s")}. Enemies inside or entering the area are Rooted and take ${v(L0, fmt0(dmg)+"%")} staff physical damage.`;
       }
     },
     {
       id:"minion_explosion", name:"Minion Explosion", type:"PASSIVE", max:15, cost:400, req:"Staff Equipped",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const dmg = 5 + L; // 6 / 10 / 15 / 20
-        return `When your army is full, the weakest minion moves to the target and explodes. Deals ${v(L0, dmg+"%")} of its Max HP as poison damage to nearby enemies.`;
+        const pct = piecewise(L, [{l:1,v:6},{l:5,v:10},{l:10,v:15},{l:15,v:20}]);
+        return `When your army is full, the weakest minion moves to the target and explodes. Deals ${v(L0, fmt0(pct)+"%")} of its Max HP as poison damage to nearby enemies.`;
       }
     },
     {
       id:"blood_storm", name:"Blood Storm", type:"ACTIVE 3", max:15, cost:500, req:"Staff Equipped",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const drain = 16 - L;        // 15 / 11 / 6 / 1
-        const flat = L;              // 1 / 5 / 10 / 15
-        const heal = 1 + L;          // 2 / 6 / 11 / 16
-        return `Drains ${v(L0, drain+"%")} of your current HP per tick. Each tick deals ${v(L0, flat+"")} damage + ${v(L0, "1%")} of enemy current HP (capped at staff max damage) as physical damage and heals your minions for ${v(L0, heal+"%")} of their max HP.`;
+        const drain = piecewise(L, [{l:1,v:15},{l:5,v:11},{l:10,v:6},{l:15,v:1}]);
+        const flat = piecewise(L, [{l:1,v:1},{l:5,v:5},{l:10,v:10},{l:15,v:15}]);
+        const heal = piecewise(L, [{l:1,v:2},{l:5,v:6},{l:10,v:11},{l:15,v:16}]);
+        return `Drains ${v(L0, fmt0(drain)+"%")} of your current HP per tick. Each tick deals ${v(L0, fmt0(flat))} damage + 1% of enemy current HP (capped at staff max damage) as physical damage and heals your minions for ${v(L0, fmt0(heal)+"%")} of their max HP.`;
       }
     },
     {
       id:"undead_mastery", name:"Undead Mastery", type:"PASSIVE", max:15, cost:600, req:"Staff Equipped",
-      describe: (L0) => {
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const hp = 3*L;              // 3 / 15 / 30 / 45
-        const bonus = 2*L;           // 2 / 10 / 20 / 30
-        return `Minions gain ${v(L0, hp+"")} Max HP and deal ${v(L0, bonus+"")} bonus damage.`;
+        const hp = piecewise(L, [{l:1,v:3},{l:5,v:15},{l:10,v:30},{l:15,v:45}]);
+        const dmg = piecewise(L, [{l:1,v:2},{l:5,v:10},{l:10,v:20},{l:15,v:30}]);
+        return `Minions gain ${v(L0, fmt0(hp))} Max HP and deal ${v(L0, fmt0(dmg))} bonus damage.`;
       }
     },
     {
-      id:"the_long_night", name:"The Long Night", type:"ACTIVE 4", max:15, cost:700, req:"Staff Equipped",
-      describe: (L0) => {
+      id:"long_night", name:"The Long Night", type:"ACTIVE 4", max:15, cost:700, req:"Staff Equipped",
+      describe:(L0)=>{
         const L = displayLevel(L0);
-        const dmg = 45 + 7*L;        // 52 / 80 / 115 / 150
-        const cd = 300 - 15*L;       // 285 / 225 / 150 / 75
-        return `Manifest the Night King form for 10s. Every second, deals ${v(L0, dmg+"%")} Staff Max Dmg as Cold and Freezes enemies within 10 tiles. Each hit heals you for ${v(L0, "50%")} of total damage dealt. Cooldown: ${v(L0, cd+"s")}.`;
+        const dps = piecewise(L, [{l:1,v:52},{l:5,v:80},{l:10,v:115},{l:15,v:150}]);
+        const cd  = piecewise(L, [{l:1,v:285},{l:5,v:225},{l:10,v:150},{l:15,v:75}]);
+        return `Manifest the Night King form for 10s. Every second, deals ${v(L0, fmt0(dps)+"%")} Staff Max Dmg as Cold and Freezes enemies within 10 tiles. Each hit heals you for 50% of total damage dealt. Cooldown: ${v(L0, fmt0(cd)+"s")}.`;
       }
     },
   ]
 };
 
-// ===== WIZARD (final pelos prints) =====
+// ===== WIZARD =====
 const WIZARD = {
-  key: "wizard",
-  label: "Wizard",
-  skills: [
+  key:"wizard",
+  label:"Wizard",
+  skills:[
     {
       id:"arcane_synergy", name:"Arcane Synergy", type:"PASSIVE", max:15, cost:100, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const amp = Math.floor(100 * L / 15); // L1=6, L3=20, L12=80, L15=100
-        return `Amplify Magery spells damage: ${v(L0, "+"+amp+"%")}. Passively allows range 12 on staff attacks & spellcasting with staffs (PvM).`;
+        const amp = piecewise(L, [{l:1,v:6},{l:5,v:33},{l:6,v:40},{l:12,v:80},{l:15,v:100}]);
+        return `Amplify Magery spells damage: ${v(L0, "+"+fmt0(amp)+"%")}. Passively allows range 12 on staff attacks & spellcasting with staffs (PvM).`;
       }
     },
     {
       id:"mystic_bolt", name:"Mystic Bolt", type:"ACTIVE 1", max:15, cost:100, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const bounces = Math.min(7, 2 + Math.floor(L/3));  // 2@1, 3@3, 4@6, 6@12, 7@15
-        const dmg = L + 1;                                // 2@1, 4@3, 7@6, 13@12
-        const mana    = Math.min(4, 1 + Math.floor(L/5));  // 1@1, 2@5, 3@10, 4@15
-        return `Bounces up to ${v(L0, bounces)} times. Deals ${v(L0, dmg)} energy damage per hit. Restores ${v(L0, mana)} mana per bounce.`;
+        // fix final: 7 bounces @15, restore 4 mana @15
+        const bounces = Math.min(7, 2 + Math.floor(L/3)); // 2@1, 3@3, 4@6, 6@12, 7@15
+        const mana    = Math.min(4, 1 + Math.floor(L/5)); // 1@1, 2@5, 3@10, 4@15
+        const dmg = piecewise(L, [{l:1,v:2},{l:3,v:4},{l:6,v:7},{l:12,v:13},{l:15,v:15}]);
+        return `Bounces up to ${v(L0, fmt0(bounces))} times. Deals ${v(L0, fmt0(dmg))} energy damage per hit. Restores ${v(L0, fmt0(mana))} mana per bounce.`;
       }
     },
     {
       id:"arcane_overload", name:"Arcane Overload", type:"PASSIVE", max:15, cost:200, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const ele = 5 + 2*L; // 7@1, 11@3, 29@12, 35@15
-        return `Increases Elemental Damage by ${v(L0, ele+"%")}.`;
+        const ele = piecewise(L, [{l:1,v:7},{l:5,v:15},{l:6,v:17},{l:12,v:29},{l:15,v:35}]);
+        return `Increases Elemental Damage by ${v(L0, fmt0(ele)+"%")}.`;
       }
     },
     {
       id:"mana_ward", name:"Mana Ward", type:"ACTIVE 2", max:15, cost:300, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const absorb = 20 + 3*L; // 23@1, 56@12, 65@15
-        return `Absorbs up to ${v(L0, absorb+"%")} of damage. Mana Cost depends on Armor Weight (The lighter, the better).`;
+        const abs = piecewise(L, [{l:1,v:23},{l:5,v:35},{l:6,v:38},{l:12,v:56},{l:15,v:65}]);
+        return `Absorbs up to ${v(L0, fmt0(abs)+"%")} of damage. Mana Cost depends on Armor Weight (The lighter, the better).`;
       }
     },
     {
       id:"arcane_conductivity", name:"Arcane Conductivity", type:"PASSIVE", max:15, cost:400, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const delay = 10 + 3*L; // 19@3, 46@12, 55@15
-        return `Reduces Spell Delay by ${v(L0, delay+"%")} when wearing Light Armor.`;
+        const red = piecewise(L, [{l:0,v:13},{l:3,v:19},{l:5,v:25},{l:6,v:28},{l:12,v:46},{l:15,v:55}]);
+        return `Reduces Spell Delay by ${v(L0, fmt0(red)+"%")} when wearing Light Armor.`;
       }
     },
     {
       id:"mirror_image", name:"Mirror Image", type:"ACTIVE 3", max:15, cost:500, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const clones = (L >= 15) ? 3 : (L >= 5) ? 2 : 1;           // 1@1..4, 2@5..14, 3@15
-        const stats = 50 + Math.floor(50 * L / 15);                 // 53@1, 60@3, 90@12, 100@15
-        const mana = 5 + L;                                         // 6@1, 17@12, 20@15
-        return `Summons ${v(L0, clones)} Clones for 30s. Clones have ${v(L0, stats+"%")} of your stats/skills and restore ${v(L0, mana+"%")} of their damage as mana to you.`;
+        const clones = piecewise(L, [{l:0,v:1},{l:5,v:2},{l:12,v:2},{l:15,v:3}]);
+        const stats = piecewise(L, [{l:0,v:53},{l:3,v:60},{l:5,v:66},{l:6,v:70},{l:12,v:90},{l:15,v:100}]);
+        const mana = piecewise(L, [{l:0,v:6},{l:3,v:8},{l:5,v:10},{l:6,v:11},{l:12,v:17},{l:15,v:20}]);
+        return `Summons ${v(L0, fmt0(clones))} Clones for 30s. Clones have ${v(L0, fmt0(stats)+"%")} of your stats/skills and restore ${v(L0, fmt0(mana)+"%")} of their damage as mana to you.`;
       }
     },
     {
       id:"elemental_erosion", name:"Elemental Erosion", type:"PASSIVE", max:15, cost:600, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const resist = 3*L; // -3@1, -36@12, -45@15
-        return `Magery spells reduce the target's resistance to their element by the amount of damage dealt (Max ${v(L0, "-"+resist)} resist) for 4.0s.`;
+        const maxRes = piecewise(L, [{l:0,v:3},{l:3,v:9},{l:5,v:15},{l:6,v:18},{l:12,v:36},{l:15,v:45}]);
+        return `Magery spells reduce the target's resistance to their element by the amount of damage dealt (Max ${v(L0, "-"+fmt0(maxRes)+" resist")}) for 4.0s.`;
       }
     },
     {
       id:"disintegrate", name:"Disintegrate", type:"ACTIVE 4", max:15, cost:700, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        return `Channel a fire that deals initial 1 damage, increasing over time up to ${v(L0, L)}. Consumes mana rapidly. Moving cancels.`;
+        const upTo = piecewise(L, [{l:0,v:1},{l:3,v:3},{l:5,v:5},{l:6,v:6},{l:12,v:12},{l:15,v:15}]);
+        return `Channel a fire that deals initial 1 damage, increasing over time up to ${v(L0, fmt0(upTo))}. Consumes mana rapidly. Moving cancels.`;
+      }
+    },
+  ]
+};
+
+// ===== PALADIN =====
+const PALADIN = {
+  key: "paladin",
+  label: "Paladin",
+  skills: [
+    {
+      id:"vanguards_shield", name:"Vanguard's Shield", type:"PASSIVE", max:15, cost:100, req:"Shield Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const mit = piecewise(L, [
+          {l:0, v:1.15},
+          {l:5, v:1.75},
+          {l:10,v:2.50},
+          {l:12,v:2.80},
+          {l:15,v:3.25},
+        ]);
+        const reflect = piecewise(L, [
+          {l:0, v:1},
+          {l:5, v:5},
+          {l:10,v:10},
+          {l:12,v:12},
+          {l:15,v:15},
+        ]);
+        return `Shield mitigation increased by ${v(L0, mit.toFixed(2)+"x")}. Reflects ${v(L0, fmt0(reflect))} Energy damage on hit.`;
+      }
+    },
+    {
+      id:"provoking_shout", name:"Provoking Shout", type:"ACTIVE 1", max:15, cost:100, req:"Shield Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const tiles = paladinTiles(L);
+        const threat = piecewise(L, [
+          {l:0, v:40},
+          {l:5, v:100},
+          {l:10,v:175},
+          {l:12,v:205},
+          {l:15,v:250},
+        ]);
+        return `Unleash a mighty roar within ${v(L0, fmt0(tiles))} tiles, challenging all nearby enemies and generating ${v(L0, fmt0(threat))} Threat.`;
+      }
+    },
+    {
+      id:"divine_challenge", name:"Divine Challenge", type:"PASSIVE", max:15, cost:200, req:"Shield Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const reduce = piecewise(L, [
+          {l:0, v:2},
+          {l:5, v:10},
+          {l:10,v:20},
+          {l:12,v:24},
+          {l:15,v:30},
+        ]);
+        return `Reduces all damage received from your current combat target by ${v(L0, fmt0(reduce)+"%")}.`;
+      }
+    },
+    {
+      id:"purification", name:"Purification", type:"ACTIVE 2", max:15, cost:300, req:"1H Melee Weap",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const heal = piecewise(L, [
+          {l:0, v:55},
+          {l:5, v:75},
+          {l:10,v:100},
+          {l:12,v:110},
+          {l:15,v:125},
+        ]);
+        return `Call upon divine light to heal the target for ${v(L0, fmt0(heal)+"%")} weapon max power, scorching adjacent enemies with equal energy damage.`;
+      }
+    },
+    {
+      id:"divine_intervention", name:"Divine Intervention", type:"PASSIVE", max:15, cost:400, req:"Shield Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const dur = piecewise(L, [
+          {l:0, v:3.8},
+          {l:5, v:5.0},
+          {l:10,v:6.5},
+          {l:12,v:7.1},
+          {l:15,v:8.0},
+        ]);
+        const cd = piecewise(L, [
+          {l:0, v:228},
+          {l:5, v:180},
+          {l:10,v:120},
+          {l:12,v:96},
+          {l:15,v:60},
+        ]);
+        return `When a party member takes fatal damage, prevents death and convert all damage to heal for ${v(L0, fmt1(dur)+"s")}. Cooldown: ${v(L0, fmt0(cd)+"s")}.`;
+      }
+    },
+    {
+      id:"guardian_angel", name:"Guardian Angel", type:"ACTIVE 3", max:15, cost:500, req:"1H Melee Weap",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const tiles = paladinTiles(L);
+        const dmg = piecewise(L, [
+          {l:0, v:8},
+          {l:5, v:20},
+          {l:10,v:35},
+          {l:12,v:41},
+          {l:15,v:50},
+        ]);
+        return `Transform into a Holy Avatar. Holy waves converge on you from ${v(L0, fmt0(tiles))} tiles away, pulling enemies closer and dealing ${v(L0, fmt0(dmg)+"%")} weapon power as energy damage. Drains Mana over time. Allows passing through enemies.`;
+      }
+    },
+    {
+      id:"righteous_fury", name:"Righteous Fury", type:"PASSIVE", max:15, cost:600, req:"1H Melee Weap",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const dmg = piecewise(L, [
+          {l:0, v:16},
+          {l:5, v:40},
+          {l:10,v:70},
+          {l:12,v:82},
+          {l:15,v:100},
+        ]);
+        const threatRed = piecewise(L, [
+          {l:0, v:8},
+          {l:5, v:20},
+          {l:10,v:35},
+          {l:12,v:41},
+          {l:15,v:50},
+        ]);
+        return `Increases Damage by ${v(L0, fmt0(dmg)+"%")} and reduces threat generation by ${v(L0, fmt0(threatRed)+"%")}.`;
+      }
+    },
+    {
+      id:"shield_bash", name:"Shield Bash", type:"ACTIVE 4", max:15, cost:700, req:"Shield Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const dmg = piecewise(L, [
+          {l:0, v:90},
+          {l:5, v:150},
+          {l:10,v:225},
+          {l:12,v:255},
+          {l:15,v:300},
+        ]);
+        return `Charges forward up to 10 tiles, collecting enemies. Deals ${v(L0, fmt0(dmg)+"%")} of shield physical resist as damage. Wall Slam: Damage is DOUBLED if enemies hit an obstacle.`;
       }
     },
   ]
@@ -568,233 +807,277 @@ const CLASSES = {
   barbarian: BARBARIAN,
   necromancer: NECROMANCER,
   wizard: WIZARD,
+  paladin: PALADIN,
 };
 
-/** ========= STATE (por classe) ========= **/
-const levelsByClass = {
+/* =========================
+   State
+========================= */
+let currentClassKey = "ranger";
+let levelsByClass = {
   ranger: Object.fromEntries(RANGER.skills.map(s => [s.id, 0])),
   barbarian: Object.fromEntries(BARBARIAN.skills.map(s => [s.id, 0])),
   necromancer: Object.fromEntries(NECROMANCER.skills.map(s => [s.id, 0])),
   wizard: Object.fromEntries(WIZARD.skills.map(s => [s.id, 0])),
+  paladin: Object.fromEntries(PALADIN.skills.map(s => [s.id, 0])),
 };
 
-let currentClassKey = "ranger";
+/* =========================
+   Render
+========================= */
+function updateHeader(){
+  const cls = CLASSES[currentClassKey];
+  document.getElementById("classTitle").textContent = cls.label;
+  document.getElementById("classSubtitle").textContent = `Classe: ${cls.label} · max ${TOTAL_POINTS} pontos (levels 0–15 por skill)`;
+  document.getElementById("pointsTotal").textContent = TOTAL_POINTS.toString();
 
-/** ========= BUILD CODE (URL) =========
- * Formato: #r:<hex> / #b:<hex> / #n:<hex> / #w:<hex>
- * hex = 1 char por skill (0..15 => 0..f), na ordem do array.
- **/
-function classPrefix(key){
-  if (key === "barbarian") return "b";
-  if (key === "necromancer") return "n";
-  if (key === "wizard") return "w";
-  return "r";
+  const spent = pointsSpent(levelsByClass[currentClassKey], cls.skills);
+  const left = TOTAL_POINTS - spent;
+  const pointsLeft = document.getElementById("pointsLeft");
+  pointsLeft.textContent = left.toString();
+  pointsLeft.className = (left>=0 ? "good" : "bad");
+
+  const gold = goldSpent(levelsByClass[currentClassKey], cls.skills);
+  document.getElementById("goldTotal").textContent = gold.toLocaleString() + "gp";
 }
-function keyFromPrefix(p){
-  if (p === "b") return "barbarian";
-  if (p === "n") return "necromancer";
-  if (p === "w") return "wizard";
-  return "ranger";
+
+function renderSkills(){
+  const cls = CLASSES[currentClassKey];
+  const levels = levelsByClass[currentClassKey];
+  const container = document.getElementById("skills");
+  container.innerHTML = "";
+
+  const spent = pointsSpent(levels, cls.skills);
+  const left = TOTAL_POINTS - spent;
+
+  for (const sk of cls.skills){
+    const L0 = clamp(levels[sk.id] ?? 0, 0, sk.max);
+    const isOn = L0 > 0;
+
+    const skillEl = document.createElement("div");
+    skillEl.className = "skill";
+
+    const badgeType = (sk.type || "").toLowerCase().includes("active") ? "active" : "passive";
+    const onOff = isOn ? "on" : "off";
+
+    const canMinus = L0 > 0;
+    const canPlus = (L0 < sk.max) && (left > 0);
+
+    skillEl.innerHTML = `
+      <div class="skillLeft">
+        <div class="skillTop">
+          <div>
+            <div class="skillName" style="color:${isOn ? "var(--good)" : "var(--bad)"}">${sk.name}</div>
+          </div>
+          <div class="skillMeta">
+            <div class="badge ${badgeType}">${sk.type}</div>
+            <div class="badge ${onOff}">${isOn ? "ATIVA" : "0 PONTOS"}</div>
+          </div>
+        </div>
+
+        <div class="levelRow">
+          <div class="lvl">Level: <b>${L0}</b> / <b>${sk.max}</b></div>
+          <div class="controls">
+            <button class="mini btnBad" ${canMinus ? "" : "disabled"} data-act="minus" data-skill="${sk.id}">-</button>
+            <button class="mini btnGood" ${canPlus ? "" : "disabled"} data-act="plus" data-skill="${sk.id}">+</button>
+          </div>
+        </div>
+
+        <div class="req">
+          <div><b>Upgrade:</b> <span class="mono">${sk.cost}gp</span></div>
+          <div><b>Requirement:</b> <span class="mono">${sk.req}</span></div>
+        </div>
+      </div>
+
+      <div class="skillRight">
+        <div class="desc">${sk.describe(L0)}</div>
+      </div>
+    `;
+
+    container.appendChild(skillEl);
+  }
+
+  // bind buttons
+  container.querySelectorAll("button[data-act]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const act = btn.getAttribute("data-act");
+      const skillId = btn.getAttribute("data-skill");
+      if (!act || !skillId) return;
+      if (act === "minus") changeLevel(skillId, -1);
+      if (act === "plus") changeLevel(skillId, +1);
+    });
+  });
 }
-function encodeBuildFor(key){
-  const cls = CLASSES[key];
-  const lv = levelsByClass[key];
-  const hex = cls.skills.map(s => (lv[s.id] || 0).toString(16)).join("");
-  return `${classPrefix(key)}:${hex}`;
+
+function changeLevel(skillId, delta){
+  const cls = CLASSES[currentClassKey];
+  const levels = levelsByClass[currentClassKey];
+
+  const sk = cls.skills.find(s => s.id === skillId);
+  if (!sk) return;
+
+  const before = clamp(levels[skillId] ?? 0, 0, sk.max);
+  const spent = pointsSpent(levels, cls.skills);
+  const left = TOTAL_POINTS - spent;
+
+  if (delta > 0 && left <= 0) return;
+  const after = clamp(before + delta, 0, sk.max);
+  if (after === before) return;
+
+  levels[skillId] = after;
+
+  updateHeader();
+  renderSkills();
+  syncHash();
+  persistLocal();
 }
-function decodeBuildFromHash(){
-  const raw = (location.hash || "").slice(1).trim().toLowerCase();
+
+function resetCurrent(){
+  const cls = CLASSES[currentClassKey];
+  const levels = levelsByClass[currentClassKey];
+  for (const s of cls.skills) levels[s.id] = 0;
+  updateHeader();
+  renderSkills();
+  syncHash();
+  persistLocal();
+}
+
+/* =========================
+   Export / Import
+========================= */
+function getShareCode(){
+  const cls = CLASSES[currentClassKey];
+  const levels = levelsByClass[currentClassKey];
+  const hex = encodeLevelsToHex(levels, cls.skills);
+  return `${classPrefix(currentClassKey)}:${hex}`;
+}
+function setFromShareCode(code){
+  // accepts "p:...." or "#p:...." or full url
+  let raw = (code || "").trim();
   if (!raw) return false;
 
-  const m = raw.match(/^([rbnw]):([0-9a-f]+)$/);
+  // if full url, extract hash
+  try{
+    const u = new URL(raw);
+    raw = (u.hash || "").replace(/^#/, "");
+  }catch(e){
+    raw = raw.replace(/^#/, "");
+  }
+
+  const m = raw.match(/^([rbnwp]):([0-9a-f]+)$/i);
   if (!m) return false;
 
-  const key = keyFromPrefix(m[1]);
+  const pref = m[1].toLowerCase();
+  const hex = m[2].toLowerCase();
+
+  const key = keyFromPrefix(pref);
   const cls = CLASSES[key];
-  const hex = m[2];
+  if (!cls) return false;
 
-  if (!cls || hex.length !== cls.skills.length) return false;
-
-  const lv = levelsByClass[key];
-  for (let i=0;i<cls.skills.length;i++){
-    const v = parseInt(hex[i], 16);
-    if (Number.isNaN(v) || v < 0 || v > cls.skills[i].max) return false;
-  }
-  for (let i=0;i<cls.skills.length;i++){
-    lv[cls.skills[i].id] = parseInt(hex[i], 16);
-  }
+  // decode
+  levelsByClass[key] = decodeHexToLevels(hex, cls.skills);
   currentClassKey = key;
+
+  // update UI select
+  document.getElementById("classSelect").value = key;
+
+  updateHeader();
+  renderSkills();
+  syncHash();
+  persistLocal();
   return true;
 }
 
-/** ========= CALCS ========= **/
-function spentPointsFor(key){
-  const cls = CLASSES[key];
-  const lv = levelsByClass[key];
-  return cls.skills.reduce((sum, s) => sum + (lv[s.id] || 0), 0);
-}
-function totalGoldFor(key){
-  const cls = CLASSES[key];
-  const lv = levelsByClass[key];
-  return cls.skills.reduce((sum, s) => sum + (lv[s.id] || 0) * s.cost, 0);
-}
-
-/** ========= UI ========= **/
-const listEl = document.getElementById("list");
-const spentEl = document.getElementById("spent");
-const totalEl = document.getElementById("total");
-const remainEl = document.getElementById("remain");
-const goldEl = document.getElementById("gold");
-const codeEl = document.getElementById("code");
-const summaryEl = document.getElementById("summary");
-const classSelectEl = document.getElementById("classSelect");
-
-function makeSummary(){
-  const cls = CLASSES[currentClassKey];
-  const lv = levelsByClass[currentClassKey];
-
-  const parts = [];
-  for (const s of cls.skills){
-    const L = lv[s.id] || 0;
-    if (L > 0) parts.push(`${s.name} ${L}`);
+async function doExport(){
+  const code = getShareCode();
+  const url = `${location.origin}${location.pathname}#${code}`;
+  const txt = `Link:\n${url}\n\nCode:\n${code}`;
+  try{
+    await navigator.clipboard.writeText(url);
+    showToast("Link copiado!");
+  }catch(e){
+    // fallback prompt
+    window.prompt("Copie o link/código:", txt);
+    return;
   }
-
-  const spent = spentPointsFor(currentClassKey);
-  const remain = TOTAL_POINTS - spent;
-  const header = `${cls.label} build — ${spent}/${TOTAL_POINTS} pts (restam ${remain}) — ${gp(totalGoldFor(currentClassKey))}`;
-  const body = parts.length ? parts.join(" | ") : "(nenhum ponto alocado)";
-  return `${header}\n${body}\n${location.href}`;
+  window.prompt("Link (já copiado) — se quiser, copie o código também:", txt);
 }
 
+function doImport(){
+  const input = window.prompt("Cole o LINK ou o CÓDIGO (ex: p:0a0b...):");
+  if (!input) return;
+  const ok = setFromShareCode(input);
+  if (!ok) showToast("Import inválido. Confere o código.");
+  else showToast("Build importada!");
+}
+
+/* =========================
+   URL hash + LocalStorage
+========================= */
 function syncHash(){
-  const code = encodeBuildFor(currentClassKey);
-  history.replaceState(null, "", "#" + code);
+  const code = getShareCode();
+  if (location.hash.replace(/^#/, "") !== code){
+    history.replaceState(null, "", "#"+code);
+  }
+}
+function loadFromHashIfAny(){
+  const raw = (location.hash || "").replace(/^#/, "");
+  if (!raw) return false;
+  return setFromShareCode(raw);
 }
 
-function render(){
-  classSelectEl.value = currentClassKey;
+function persistLocal(){
+  try{
+    const payload = { currentClassKey, levelsByClass };
+    localStorage.setItem("talcalc_state_v1", JSON.stringify(payload));
+  }catch(e){}
+}
+function loadLocal(){
+  try{
+    const s = localStorage.getItem("talcalc_state_v1");
+    if (!s) return false;
+    const obj = JSON.parse(s);
+    if (!obj || !obj.levelsByClass) return false;
+    // merge safely
+    for (const k of Object.keys(CLASSES)){
+      if (obj.levelsByClass[k]){
+        levelsByClass[k] = { ...levelsByClass[k], ...obj.levelsByClass[k] };
+      }
+    }
+    if (obj.currentClassKey && CLASSES[obj.currentClassKey]) currentClassKey = obj.currentClassKey;
+    return true;
+  }catch(e){ return false; }
+}
 
-  const cls = CLASSES[currentClassKey];
-  const lv = levelsByClass[currentClassKey];
-
-  const spent = spentPointsFor(currentClassKey);
-  const remain = TOTAL_POINTS - spent;
-
-  spentEl.textContent = spent;
-  totalEl.textContent = TOTAL_POINTS;
-  remainEl.textContent = remain;
-  remainEl.className = (remain >= 0) ? "ok" : "bad";
-  goldEl.textContent = gp(totalGoldFor(currentClassKey));
-
-  const buildCode = encodeBuildFor(currentClassKey);
-  codeEl.textContent = buildCode;
-
+/* =========================
+   Init
+========================= */
+document.getElementById("classSelect").addEventListener("change", (e)=>{
+  currentClassKey = e.target.value;
+  updateHeader();
+  renderSkills();
   syncHash();
-  summaryEl.textContent = makeSummary();
+  persistLocal();
+});
 
-  listEl.innerHTML = "";
-  for (const s of cls.skills){
-    const L = lv[s.id] || 0;
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  if (confirm("Resetar a classe atual?")) resetCurrent();
+});
+document.getElementById("exportBtn").addEventListener("click", doExport);
+document.getElementById("importBtn").addEventListener("click", doImport);
 
-    const card = document.createElement("div");
-    card.className = "card " + (L > 0 ? "skill-on" : "skill-off");
-
-    const left = document.createElement("div");
-    left.innerHTML = `
-      <div class="name">${s.name}</div>
-      <div class="meta">${s.type} • Max ${s.max} • ${s.cost}gp/pt • Req: ${s.req} • <b class="${L>0?'ok':'bad'}">${L>0?'ATIVA':'INATIVA'}</b></div>
-      <div class="desc">${s.describe ? s.describe(L) : ""}</div>
-    `;
-
-    const right = document.createElement("div");
-    right.className = "controls";
-
-    const minus = document.createElement("button");
-    minus.textContent = "–";
-    minus.disabled = (L <= 0);
-    minus.onclick = () => setLevel(s.id, L - 1);
-
-    const plus = document.createElement("button");
-    plus.textContent = "+";
-    plus.disabled = (L >= s.max) || (spent >= TOTAL_POINTS);
-    plus.onclick = () => setLevel(s.id, L + 1);
-
-    const input = document.createElement("input");
-    input.type = "number";
-    input.min = 0;
-    input.max = s.max;
-    input.value = L;
-    input.onchange = () => {
-      const v = clamp(Number(input.value || 0), 0, s.max);
-      setLevel(s.id, v);
-    };
-
-    const row1 = document.createElement("div");
-    row1.className = "row";
-    row1.appendChild(minus);
-    row1.appendChild(input);
-    row1.appendChild(plus);
-
-    const row2 = document.createElement("div");
-    row2.className = "small";
-    row2.innerHTML = `Level: <b class="${L>0?'ok':'bad'}">${L}</b> • Custo: <span class="mono">${gp(L * s.cost)}</span>`;
-
-    right.appendChild(row1);
-    right.appendChild(row2);
-
-    card.appendChild(left);
-    card.appendChild(right);
-    listEl.appendChild(card);
+(function init(){
+  // prefer hash > local
+  const fromHash = loadFromHashIfAny();
+  if (!fromHash){
+    loadLocal();
+    // if loaded local, reflect
+    document.getElementById("classSelect").value = currentClassKey;
+    syncHash();
   }
-}
-
-function setLevel(id, newLevel){
-  const cls = CLASSES[currentClassKey];
-  const lv = levelsByClass[currentClassKey];
-
-  const max = cls.skills.find(s => s.id === id)?.max ?? 15;
-  const current = lv[id] || 0;
-  newLevel = clamp(newLevel, 0, max);
-
-  const delta = newLevel - current;
-  if (delta === 0) return;
-
-  const spent = spentPointsFor(currentClassKey);
-  if (delta > 0 && spent + delta > TOTAL_POINTS){
-    newLevel = current + Math.max(0, TOTAL_POINTS - spent);
-  }
-
-  lv[id] = newLevel;
-  render();
-}
-
-/** ========= ACTIONS ========= **/
-classSelectEl.onchange = () => {
-  currentClassKey = classSelectEl.value;
-  render();
-};
-
-document.getElementById("resetBtn").onclick = () => {
-  const cls = CLASSES[currentClassKey];
-  levelsByClass[currentClassKey] = Object.fromEntries(cls.skills.map(s => [s.id, 0]));
-  render();
-};
-
-document.getElementById("copyBtn").onclick = async () => {
-  const url = location.href;
-  try { await navigator.clipboard.writeText(url); alert("Link copiado!"); }
-  catch { prompt("Copia aqui:", url); }
-};
-
-document.getElementById("copySummaryBtn").onclick = async () => {
-  const txt = makeSummary();
-  try { await navigator.clipboard.writeText(txt); alert("Resumo copiado!"); }
-  catch { prompt("Copia aqui:", txt); }
-};
-
-/** ========= INIT ========= **/
-decodeBuildFromHash();
-render();
+  updateHeader();
+  renderSkills();
+})();
 </script>
 </body>
 </html>
