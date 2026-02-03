@@ -267,7 +267,7 @@ const RANGER = {
       id:"sniper_shot", name:"Sniper Shot", type:"ACTIVE 2", max:15, cost:300, req:"Ranged Weapon",
       describe: (L0) => {
         const L = displayLevel(L0);
-        const dmg = Math.min(250, 160 + 10*(L - 1));
+        const dmg = 150 + 10*L; // L=1 => 160, L=15 => 300
         const stun = fmt1(2.0 + 0.2*L) + "s";
         return `Channels your focus into a single, devastating shot dealing ${v(L0, dmg+"%")} weapon max damage. The sheer kinetic force knocks the enemy back and leaves them stunned for ${v(L0, stun)}. Moving cancels.`;
       }
