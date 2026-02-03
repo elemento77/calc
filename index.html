@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Talent Calculator — Ranger / Barbarian / Necromancer</title>
+  <title>Talent Calculator — Ranger / Barbarian / Necromancer / Wizard</title>
   <style>
     :root{
       --bg:#0e0f12;
@@ -171,6 +171,7 @@
             <option value="ranger">Ranger</option>
             <option value="barbarian">Barbarian</option>
             <option value="necromancer">Necromancer</option>
+            <option value="wizard">Wizard</option>
           </select>
         </div>
 
@@ -191,7 +192,7 @@
         <div class="buildbox">
           <pre class="buildtext" id="summary">-</pre>
         </div>
-        <div class="hint">Dica: o link salva a classe e o build. Ex: <span class="mono">#r:...</span> / <span class="mono">#b:...</span> / <span class="mono">#n:...</span></div>
+        <div class="hint">Dica: o link salva a classe e o build. Ex: <span class="mono">#r:...</span> / <span class="mono">#b:...</span> / <span class="mono">#n:...</span> / <span class="mono">#w:...</span></div>
       </div>
 
       <div class="right">
@@ -206,6 +207,7 @@ const TOTAL_POINTS = 60;
 
 /** ========= HELPERS ========= **/
 function fmt1(n){ return Number(n).toFixed(1).replace(".", ","); }
+function fmt0(n){ return String(Math.floor(Number(n))); }
 function gp(n){ return Number(n).toLocaleString("pt-BR") + " gp"; }
 function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
 
@@ -225,17 +227,7 @@ function v(L0, text){
  */
 function displayLevel(L0){ return (L0 === 0) ? 1 : L0; }
 
-/** ========= NECRO: summon list =========
- * Unlocks:
- * 1: Headless One, Zombie, Skeleton, Skeletal Archer, Skeletal Mage
- * 9: Bone Magi
- * 11: Patchwork Skeleton
- * 13: Skeletal Knight
- * 15: Skeletal Dragon
- *
- * (você comentou “aumentando em 2, 3, 5, 7, 9...” — mas os nomes “novos” que você listou
- * começam em 9/11/13/15, então eu modelei exatamente esses thresholds com nomes.)
- */
+/** ========= NECRO SUMMON TIERS (final) ========= **/
 const NECRO_SUMMON_UNLOCKS = [
   { level: 1,  name: "Headless One" },
   { level: 2,  name: "Zombie" },
@@ -248,11 +240,9 @@ const NECRO_SUMMON_UNLOCKS = [
   { level: 15, name: "Skeletal Dragon" },
 ];
 
-
 function summonListHTML(L0){
   const L = displayLevel(L0);
   const unlocked = NECRO_SUMMON_UNLOCKS.filter(x => x.level <= L).map(x => x.name);
-  // destaca o "conteúdo que muda" em verde/vermelho (já que a lista muda com L)
   const joined = unlocked.map(n => v(L0, n)).join(", ");
   return joined || v(L0, "(none)");
 }
@@ -296,7 +286,7 @@ const RANGER = {
       id:"sniper_shot", name:"Sniper Shot", type:"ACTIVE 2", max:15, cost:300, req:"Ranged Weapon",
       describe: (L0) => {
         const L = displayLevel(L0);
-        // ✅ corrigido: 160% no L1 e +10% por ponto até 300% no L15
+        // ✅ final: 160% no L1 e +10% por ponto até 300% no L15
         const dmg = 150 + 10*L; // L1=160, L15=300
         const stun = fmt1(2.0 + 0.2*L) + "s";
         return `Channels your focus into a single, devastating shot dealing ${v(L0, dmg+"%")} weapon max damage. The sheer kinetic force knocks the enemy back and leaves them stunned for ${v(L0, stun)}. Moving cancels.`;
@@ -415,7 +405,7 @@ const BARBARIAN = {
   ]
 };
 
-// ===== NECROMANCER (a partir dos seus prints 1/5/10/15) =====
+// ===== NECROMANCER (final) =====
 const NECROMANCER = {
   key: "necromancer",
   label: "Necromancer",
@@ -424,23 +414,22 @@ const NECROMANCER = {
       id:"raise_dead", name:"Raise Dead", type:"PASSIVE", max:15, cost:100, req:"Staff Equipped",
       describe: (L0) => {
         const L = displayLevel(L0);
-        const chance = 15 + L; // L1=16%, L5=20%, L10=25%, L15=30%
+        const chance = 15 + L; // 16 / 20 / 25 / 30
         const reanimate = (L >= 15) ? ` At level 15 has a ${v(L0, "20%")} chance to Reanimate victims on kill.` : "";
         return `Dealing damage have ${v(L0, chance.toFixed(1)+"%")} chance to summon undead.${reanimate}<br><br>
                 Summon list scales with skill level:<br>
                 ${summonListHTML(L0)}`;
       }
     },
-{
-  id:"soul_syphon", name:"Soul Syphon", type:"ACTIVE 1", max:15, cost:100, req:"Staff Equipped",
-  describe: (L0) => {
-    const L = displayLevel(L0);
-    const dmg = 80 + 5*L;                 // 85 / 105 / 130 / 155
-    const range = 7 + Math.floor(L/3);    // ✅ 8@3, 9@6, 10@9, 11@12, 12@15
-    return `Deals ${v(L0, dmg+"%")} Staff Dmg to 3 closest enemies at range ${v(L0, range)} and heals you. Passively allows range ${v(L0, range)} on staff attacks & spellcasting with staffs (PvM).`;
-  }
-},
-
+    {
+      id:"soul_syphon", name:"Soul Syphon", type:"ACTIVE 1", max:15, cost:100, req:"Staff Equipped",
+      describe: (L0) => {
+        const L = displayLevel(L0);
+        const dmg = 80 + 5*L;              // 85 / 105 / 130 / 155
+        const range = 7 + Math.floor(L/3); // ✅ 8@3, 9@6, 10@9, 11@12, 12@15
+        return `Deals ${v(L0, dmg+"%")} Staff Dmg to 3 closest enemies at range ${v(L0, range)} and heals you. Passively allows range ${v(L0, range)} on staff attacks & spellcasting with staffs (PvM).`;
+      }
+    },
     {
       id:"necrotic_curse", name:"Necrotic Curse", type:"PASSIVE", max:15, cost:200, req:"Staff Equipped",
       describe: (L0) => {
@@ -499,10 +488,86 @@ const NECROMANCER = {
   ]
 };
 
+// ===== WIZARD (final pelos prints) =====
+const WIZARD = {
+  key: "wizard",
+  label: "Wizard",
+  skills: [
+    {
+      id:"arcane_synergy", name:"Arcane Synergy", type:"PASSIVE", max:15, cost:100, req:"Staff Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const amp = Math.floor(100 * L / 15); // L1=6, L3=20, L12=80, L15=100
+        return `Amplify Magery spells damage: ${v(L0, "+"+amp+"%")}. Passively allows range 12 on staff attacks & spellcasting with staffs (PvM).`;
+      }
+    },
+    {
+      id:"mystic_bolt", name:"Mystic Bolt", type:"ACTIVE 1", max:15, cost:100, req:"Staff Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const bounces = Math.min(7, 2 + Math.floor(L/3));  // 2@1, 3@3, 4@6, 6@12, 7@15
+        const dmg = L + 1;                                // 2@1, 4@3, 7@6, 13@12
+        const mana    = Math.min(4, 1 + Math.floor(L/5));  // 1@1, 2@5, 3@10, 4@15
+        return `Bounces up to ${v(L0, bounces)} times. Deals ${v(L0, dmg)} energy damage per hit. Restores ${v(L0, mana)} mana per bounce.`;
+      }
+    },
+    {
+      id:"arcane_overload", name:"Arcane Overload", type:"PASSIVE", max:15, cost:200, req:"Staff Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const ele = 5 + 2*L; // 7@1, 11@3, 29@12, 35@15
+        return `Increases Elemental Damage by ${v(L0, ele+"%")}.`;
+      }
+    },
+    {
+      id:"mana_ward", name:"Mana Ward", type:"ACTIVE 2", max:15, cost:300, req:"Staff Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const absorb = 20 + 3*L; // 23@1, 56@12, 65@15
+        return `Absorbs up to ${v(L0, absorb+"%")} of damage. Mana Cost depends on Armor Weight (The lighter, the better).`;
+      }
+    },
+    {
+      id:"arcane_conductivity", name:"Arcane Conductivity", type:"PASSIVE", max:15, cost:400, req:"Staff Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const delay = 10 + 3*L; // 19@3, 46@12, 55@15
+        return `Reduces Spell Delay by ${v(L0, delay+"%")} when wearing Light Armor.`;
+      }
+    },
+    {
+      id:"mirror_image", name:"Mirror Image", type:"ACTIVE 3", max:15, cost:500, req:"Staff Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const clones = (L >= 15) ? 3 : (L >= 5) ? 2 : 1;           // 1@1..4, 2@5..14, 3@15
+        const stats = 50 + Math.floor(50 * L / 15);                 // 53@1, 60@3, 90@12, 100@15
+        const mana = 5 + L;                                         // 6@1, 17@12, 20@15
+        return `Summons ${v(L0, clones)} Clones for 30s. Clones have ${v(L0, stats+"%")} of your stats/skills and restore ${v(L0, mana+"%")} of their damage as mana to you.`;
+      }
+    },
+    {
+      id:"elemental_erosion", name:"Elemental Erosion", type:"PASSIVE", max:15, cost:600, req:"Staff Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        const resist = 3*L; // -3@1, -36@12, -45@15
+        return `Magery spells reduce the target's resistance to their element by the amount of damage dealt (Max ${v(L0, "-"+resist)} resist) for 4.0s.`;
+      }
+    },
+    {
+      id:"disintegrate", name:"Disintegrate", type:"ACTIVE 4", max:15, cost:700, req:"Staff Equipped",
+      describe:(L0)=>{
+        const L = displayLevel(L0);
+        return `Channel a fire that deals initial 1 damage, increasing over time up to ${v(L0, L)}. Consumes mana rapidly. Moving cancels.`;
+      }
+    },
+  ]
+};
+
 const CLASSES = {
   ranger: RANGER,
   barbarian: BARBARIAN,
   necromancer: NECROMANCER,
+  wizard: WIZARD,
 };
 
 /** ========= STATE (por classe) ========= **/
@@ -510,22 +575,25 @@ const levelsByClass = {
   ranger: Object.fromEntries(RANGER.skills.map(s => [s.id, 0])),
   barbarian: Object.fromEntries(BARBARIAN.skills.map(s => [s.id, 0])),
   necromancer: Object.fromEntries(NECROMANCER.skills.map(s => [s.id, 0])),
+  wizard: Object.fromEntries(WIZARD.skills.map(s => [s.id, 0])),
 };
 
 let currentClassKey = "ranger";
 
 /** ========= BUILD CODE (URL) =========
- * Formato: #r:<hex> / #b:<hex> / #n:<hex>
+ * Formato: #r:<hex> / #b:<hex> / #n:<hex> / #w:<hex>
  * hex = 1 char por skill (0..15 => 0..f), na ordem do array.
  **/
 function classPrefix(key){
   if (key === "barbarian") return "b";
   if (key === "necromancer") return "n";
+  if (key === "wizard") return "w";
   return "r";
 }
 function keyFromPrefix(p){
   if (p === "b") return "barbarian";
   if (p === "n") return "necromancer";
+  if (p === "w") return "wizard";
   return "ranger";
 }
 function encodeBuildFor(key){
@@ -538,7 +606,7 @@ function decodeBuildFromHash(){
   const raw = (location.hash || "").slice(1).trim().toLowerCase();
   if (!raw) return false;
 
-  const m = raw.match(/^([rbn]):([0-9a-f]+)$/);
+  const m = raw.match(/^([rbnw]):([0-9a-f]+)$/);
   if (!m) return false;
 
   const key = keyFromPrefix(m[1]);
