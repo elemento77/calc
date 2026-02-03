@@ -205,8 +205,6 @@
       padding: 14px 16px;
       display: flex;
       gap: 10px;
-      align-items: center;
-      justify-content: space-between;
       border-bottom: 1px solid var(--line);
       background: rgba(0, 0, 0, .18);
     }
@@ -215,6 +213,14 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
+    }
+
+    .classIcon {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      display: none;
+      /* Oculto por padrão */
     }
 
     .panelHead .h .k {
@@ -557,6 +563,7 @@
     <main>
       <section class="panel">
         <div class="panelHead">
+          <img id="classIcon" class="classIcon" alt="class icon">
           <div class="h">
             <div class="k" id="classTitle">Ranger</div>
             <div class="m">Distribua seus pontos e compartilhe a build.</div>
@@ -1193,6 +1200,27 @@
     function updateHeader() {
       const cls = CLASSES[currentClassKey];
       document.getElementById("classTitle").textContent = cls.label;
+
+      // Class Icon Logic
+      const iconEl = document.getElementById("classIcon");
+      if (currentClassKey === 'barbarian') {
+        iconEl.src = "barbicone.png";
+        iconEl.style.display = "block";
+      } else if (currentClassKey === 'paladin') {
+        iconEl.src = "paladinoIcone.png";
+        iconEl.style.display = "block";
+      } else if (currentClassKey === 'ranger') {
+        iconEl.src = "rangericone.png";
+        iconEl.style.display = "block";
+      } else if (currentClassKey === 'necromancer') {
+        iconEl.src = "necroicone.png";
+        iconEl.style.display = "block";
+      } else if (currentClassKey === 'wizard') {
+        iconEl.src = "Wizardicone.png";
+        iconEl.style.display = "block";
+      } else {
+        iconEl.style.display = "none";
+      }
 
       const spent = pointsSpent(levelsByClass[currentClassKey], cls.skills);
       const left = TOTAL_POINTS - spent;
