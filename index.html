@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ranger Talent Calculator</title>
+  <style>
+    :root{
+      --bg:#0e0f12;
+      --card:#161821;
+      --text:#e8e8ea;
+      --muted:#a9abb3;
+      --accent:#7CFF6B;
+      --warn:#ff6b6b;
+      --border:rgba(255,255,255,.10);
+      --border2:rgba(255,255,255,.08);
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .wrap{ max-width: 1020px; margin: 22px auto; padding: 0 16px 40px; }
+    .top{
+      display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      background: linear-gradient(180deg, rgba(124,255,107,.10), transparent);
+      border:1px solid var(--border2);
+      border-radius:14px;
+      padding:14px 16px;
+    }
+    .title{ font-weight:800; letter-spacing:.5px; }
+    .subtitle{ color:var(--muted); font-size:13px; margin-top:4px; }
+    .stats{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+    .pill{
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border2);
+      padding:8px 10px;
+      border-radius:999px;
+      color:var(--muted);
+      font-size:14px;
+      white-space:nowrap;
+    }
+    .pill b{ color:var(--text); }
+    .ok{ color:var(--accent); }
+    .bad{ color:var(--warn); }
+    button{
+      background: rgba(255,255,255,.08);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:9px 12px;
+      cursor:pointer;
+      font-weight:600;
+    }
+    button:hover{ background: rgba(255,255,255,.12); }
+    button:disabled{ opacity:.45; cursor:not-allowed; }
+    .grid{ display:grid; grid-template-columns: 1fr; gap:12px; margin-top:14px; }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border2);
+      border-radius:14px;
+      padding:14px 14px;
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      min-height: 132px;
+    }
+    .name{ font-weight:800; font-size:16px; }
+    .meta{ color:var(--muted); font-size:13px; margin-top:4px; }
+    .desc{ color:#d7d7db; font-size:13px; margin-top:8px; line-height:1.35; }
+    .controls{ display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
+    .row{ display:flex; gap:8px; align-items:center; }
+    input[type="number"]{
+      width:78px;
+      padding:9px 8px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.25);
+      color:var(--text);
+      font-weight:700;
+      text-align:center;
+    }
+    .small{ color:var(--muted); font-size:13px; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .footer{
+      margin-top:14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      border:1px solid var(--border2);
+      border-radius:14px;
+      padding:12px 14px;
+      background: rgba(255,255,255,.03);
+    }
+    .footer .left{ display:flex; flex-direction:column; gap:6px; }
+    .footer .right{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .buildbox{
+      border:1px solid var(--border2);
+      background: rgba(0,0,0,.25);
+      border-radius:12px;
+      padding:10px 12px;
+      width: min(560px, 100%);
+    }
+    .buildtext{
+      white-space:pre-wrap;
+      word-break:break-word;
+      margin:0;
+      font-size:13px;
+      line-height:1.35;
+      color:#e3e3e6;
+    }
+    @media (min-width: 900px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="title">CLASS: RANGER — Talent Calculator</div>
+        <div class="subtitle">Distribua pontos, veja custo total (gold sink) e compartilhe o build por link.</div>
+      </div>
+
+      <div class="stats">
+        <div class="pill">Pontos: <b id="spent">0</b>/<b id="total">60</b> (<b id="remain" class="ok">60</b> restantes)</div>
+        <div class="pill">Custo total: <b id="gold" class="mono">0 gp</b></div>
+        <button id="resetBtn" title="Zerar todos os talentos">Reset</button>
+        <button id="copyBtn" title="Copiar link com build">Copiar link</button>
+      </div>
+    </div>
+
+    <div class="grid" id="list"></div>
+
+    <div class="footer">
+      <div class="left">
+        <div class="small">Build code: <span class="mono" id="code">-</span></div>
+        <div class="small">Resumo (pra colar no Discord):</div>
+        <div class="buildbox">
+          <pre class="buildtext" id="summary">-</pre>
+        </div>
+      </div>
+
+      <div class="right">
+        <button id="copySummaryBtn">Copiar resumo</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/** ========= CONFIG ========= **/
+const TOTAL_POINTS = 60;
+
+// L = nível (0..15). As fórmulas abaixo foram confirmadas pelos prints (lvl 1/5/10/15).
+const SKILLS = [
+  {
+    id:"sharpshooter", name:"Sharpshooter", type:"PASSIVE", max:15, cost:100, req:"Ranged Weapon",
+    describe: (L) => {
+      const range = Math.floor(L/5);
+      const bonus = 10 + 6*L;
+      return `Increases attacks range by +${range} tiles. Deals up to ${bonus}% bonus damage based on distance.`;
+    }
+  },
+  {
+    id:"spirit_wolf", name:"Spirit Wolf", type:"ACTIVE 1", max:15, cost:100, req:"Ranged Weapon",
+    describe: (L) => {
+      const hp = 80 + 12*L;
+      return `Summons a Spirit Wolf with ${hp} HP. Active Use: Using the skill again commands the wolf to Taunt all nearby enemies and heals the wolf.`;
+    }
+  },
+  {
+    id:"hunters_mark", name:"Hunter's Mark", type:"PASSIVE", max:15, cost:200, req:"Ranged Weapon",
+    describe: (L) => {
+      const mark = fmt1(5 + 1.5*L) + "%";
+      const res = (5 + 1*L) + "%";
+      const rapid = (5 + 3*L) + "%";
+      const bonusDmg = L;
+      return `${mark} chance to Mark targets, reducing all resistances by ${res} for 3.0s. Hitting Marked targets has ${rapid} chance to trigger Rapid Fire and deal ${bonusDmg} bonus damage.`;
+    }
+  },
+  {
+    id:"sniper_shot", name:"Sniper Shot", type:"ACTIVE 2", max:15, cost:300, req:"Ranged Weapon",
+    describe: (L) => {
+      const dmg = 150 + 50*Math.floor(L/5);
+      const stun = fmt1(2.0 + 0.2*L) + "s";
+      return `Channels your focus into a single, devastating shot dealing ${dmg}% weapon max damage. The sheer kinetic force knocks the enemy back and leaves them stunned for ${stun}. Moving cancels.`;
+    }
+  },
+  {
+    id:"vampiric_arrows", name:"Vampiric Arrows", type:"PASSIVE", max:15, cost:400, req:"Ranged Weapon",
+    describe: (L) => {
+      const heal = 5 + L;
+      return `Drains vitality from targets, healing you for ${heal}% of the damage dealt.`;
+    }
+  },
+  {
+    id:"triple_ricochet", name:"Triple Ricochet", type:"ACTIVE 3", max:15, cost:500, req:"Ranged Weapon",
+    describe: (L) => {
+      const shot = 50 + 5*L;
+      return `Fires 3 shots, each dealing ${shot}% weapon damage. Ricochets to enemies within 5 tiles.`;
+    }
+  },
+  {
+    id:"frost_arrows", name:"Frost Arrows", type:"PASSIVE", max:15, cost:600, req:"Ranged Weapon",
+    describe: (L) => {
+      const convert = 10 + 6*L;
+      const slow = 30 + 3*L;
+      return `Converts ${convert}% of ranged physical damage to cold. Slows enemy movement by ${slow}% for 2.0s.`;
+    }
+  },
+  {
+    id:"rain_of_arrows", name:"Rain of Arrows", type:"ACTIVE 4", max:15, cost:700, req:"Ranged Weapon",
+    describe: (L) => {
+      const dur = fmt1(3.0 + 0.2*L) + "s";
+      const dps = 30 + 2*L;
+      return `Rain arrows on a 5-tile radius area for ${dur}, dealing ${dps}% weapon damage per second.`;
+    }
+  },
+];
+
+/** ========= STATE ========= **/
+let levels = Object.fromEntries(SKILLS.map(s => [s.id, 0]));
+
+/** ========= HELPERS ========= **/
+function fmt1(n){
+  // 1 casa decimal, vírgula pt-BR (pra bater com seus prints)
+  return Number(n).toFixed(1).replace(".", ",");
+}
+function gp(n){
+  return Number(n).toLocaleString("pt-BR") + " gp";
+}
+function clamp(v, min, max){
+  return Math.max(min, Math.min(max, v));
+}
+
+/** ========= BUILD CODE (URL) =========
+ * 1 char hex por skill (0..15 => 0..f), na ordem do array SKILLS.
+ * Ex: "10a0..." (cada letra é o nível daquela skill)
+ **/
+function encodeBuild(){
+  return SKILLS.map(s => (levels[s.id] || 0).toString(16)).join("");
+}
+function decodeBuild(code){
+  if (!code) return false;
+  const clean = code.trim().toLowerCase();
+  if (clean.length !== SKILLS.length) return false;
+  for (let i=0;i<SKILLS.length;i++){
+    const v = parseInt(clean[i], 16);
+    if (Number.isNaN(v) || v < 0 || v > SKILLS[i].max) return false;
+  }
+  for (let i=0;i<SKILLS.length;i++){
+    levels[SKILLS[i].id] = parseInt(clean[i], 16);
+  }
+  return true;
+}
+function applyFromHash(){
+  const code = (location.hash || "").slice(1);
+  decodeBuild(code); // ignora inválidos silenciosamente
+}
+
+/** ========= CALCS ========= **/
+function spentPoints(){
+  return SKILLS.reduce((sum, s) => sum + (levels[s.id] || 0), 0);
+}
+function remainPoints(){
+  return TOTAL_POINTS - spentPoints();
+}
+function totalGold(){
+  return SKILLS.reduce((sum, s) => sum + (levels[s.id] || 0) * s.cost, 0);
+}
+
+/** ========= UI ========= **/
+const listEl = document.getElementById("list");
+const spentEl = document.getElementById("spent");
+const totalEl = document.getElementById("total");
+const remainEl = document.getElementById("remain");
+const goldEl = document.getElementById("gold");
+const codeEl = document.getElementById("code");
+const summaryEl = document.getElementById("summary");
+
+function makeSummary(){
+  const parts = [];
+  for (const s of SKILLS){
+    const L = levels[s.id] || 0;
+    if (L > 0) parts.push(`${s.name} ${L}`);
+  }
+  const spent = spentPoints();
+  const remain = TOTAL_POINTS - spent;
+  const header = `RANGER build — ${spent}/${TOTAL_POINTS} pts (restam ${remain}) — ${gp(totalGold())}`;
+  const body = parts.length ? parts.join(" | ") : "(nenhum ponto alocado)";
+  return `${header}\n${body}\n${location.href}`;
+}
+
+function render(){
+  const spent = spentPoints();
+  const remain = TOTAL_POINTS - spent;
+
+  spentEl.textContent = spent;
+  totalEl.textContent = TOTAL_POINTS;
+  remainEl.textContent = remain;
+  remainEl.className = (remain >= 0) ? "ok" : "bad";
+  goldEl.textContent = gp(totalGold());
+
+  const code = encodeBuild();
+  codeEl.textContent = code;
+
+  // manter hash sincronizado (link compartilhável)
+  history.replaceState(null, "", "#" + code);
+
+  summaryEl.textContent = makeSummary();
+
+  listEl.innerHTML = "";
+  for (const s of SKILLS){
+    const L = levels[s.id] || 0;
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const left = document.createElement("div");
+    const desc = s.describe ? s.describe(L) : (s.desc || "");
+    left.innerHTML = `
+      <div class="name">${s.name}</div>
+      <div class="meta">${s.type} • Max ${s.max} • ${s.cost}gp/pt • Req: ${s.req}</div>
+      <div class="desc">${desc}</div>
+    `;
+
+    const right = document.createElement("div");
+    right.className = "controls";
+
+    const minus = document.createElement("button");
+    minus.textContent = "–";
+    minus.disabled = (L <= 0);
+    minus.onclick = () => setLevel(s.id, L - 1);
+
+    const plus = document.createElement("button");
+    plus.textContent = "+";
+    plus.disabled = (L >= s.max) || (spent >= TOTAL_POINTS);
+    plus.onclick = () => setLevel(s.id, L + 1);
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.min = 0;
+    input.max = s.max;
+    input.value = L;
+    input.onchange = () => {
+      const v = clamp(Number(input.value || 0), 0, s.max);
+      setLevel(s.id, v);
+    };
+
+    const row1 = document.createElement("div");
+    row1.className = "row";
+    row1.appendChild(minus);
+    row1.appendChild(input);
+    row1.appendChild(plus);
+
+    const row2 = document.createElement("div");
+    row2.className = "small";
+    row2.innerHTML = `Level: <b>${L}</b> • Custo: <span class="mono">${gp(L * s.cost)}</span>`;
+
+    right.appendChild(row1);
+    right.appendChild(row2);
+
+    card.appendChild(left);
+    card.appendChild(right);
+    listEl.appendChild(card);
+  }
+}
+
+function setLevel(id, newLevel){
+  const current = levels[id] || 0;
+  newLevel = clamp(newLevel, 0, SKILLS.find(s => s.id === id)?.max ?? 15);
+
+  const delta = newLevel - current;
+  if (delta === 0) return;
+
+  // respeitar cap de pontos
+  const spent = spentPoints();
+  if (delta > 0 && spent + delta > TOTAL_POINTS){
+    newLevel = current + Math.max(0, TOTAL_POINTS - spent);
+  }
+
+  levels[id] = newLevel;
+  render();
+}
+
+/** ========= ACTIONS ========= **/
+document.getElementById("resetBtn").onclick = () => {
+  levels = Object.fromEntries(SKILLS.map(s => [s.id, 0]));
+  render();
+};
+
+document.getElementById("copyBtn").onclick = async () => {
+  const url = location.href;
+  try { await navigator.clipboard.writeText(url); alert("Link copiado!"); }
+  catch { prompt("Copia aqui:", url); }
+};
+
+document.getElementById("copySummaryBtn").onclick = async () => {
+  const txt = makeSummary();
+  try { await navigator.clipboard.writeText(txt); alert("Resumo copiado!"); }
+  catch { prompt("Copia aqui:", txt); }
+};
+
+/** ========= INIT ========= **/
+applyFromHash();
+render();
+</script>
+</body>
+</html>
