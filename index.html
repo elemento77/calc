@@ -345,8 +345,8 @@ const RANGER = {
       id:"sharpshooter", name:"Sharpshooter", type:"PASSIVE", max:15, cost:100, req:"Ranged Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const tiles = piecewise(L, [{l:0,v:0},{l:5,v:1},{l:10,v:2},{l:15,v:3}]);
-        const bonus = piecewise(L, [{l:0,v:16},{l:5,v:40},{l:10,v:70},{l:15,v:100}]);
+        const tiles = piecewise(L, [{l:1,v:0},{l:5,v:1},{l:10,v:2},{l:15,v:3}]);
+        const bonus = piecewise(L, [{l:1,v:16},{l:5,v:40},{l:10,v:70},{l:15,v:100}]);
         return `Increases attacks range by ${v(L0, "+"+fmt0(tiles))} tiles. Deals up to ${v(L0, fmt0(bonus)+"%")} bonus damage based on distance.`;
       }
     },
@@ -354,7 +354,7 @@ const RANGER = {
       id:"spirit_wolf", name:"Spirit Wolf", type:"ACTIVE 1", max:15, cost:100, req:"Ranged Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const hp = piecewise(L, [{l:0,v:92},{l:5,v:140},{l:10,v:200},{l:15,v:260}]);
+        const hp = piecewise(L, [{l:1,v:92},{l:5,v:140},{l:10,v:200},{l:15,v:260}]);
         return `Summons a Spirit Wolf with ${v(L0, fmt0(hp)+" HP")}. Active Use: Using the skill again commands the wolf to Taunt all nearby enemies and heals the wolf.`;
       }
     },
@@ -362,10 +362,10 @@ const RANGER = {
       id:"hunters_mark", name:"Hunter's Mark", type:"PASSIVE", max:15, cost:200, req:"Ranged Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const chance = piecewise(L, [{l:0,v:6.5},{l:5,v:12.5},{l:10,v:20},{l:15,v:27.5}]);
-        const resist = piecewise(L, [{l:0,v:6},{l:5,v:10},{l:10,v:15},{l:15,v:20}]);
-        const rf = piecewise(L, [{l:0,v:8},{l:5,v:20},{l:10,v:35},{l:15,v:50}]);
-        const dmg = piecewise(L, [{l:0,v:1},{l:5,v:5},{l:10,v:10},{l:15,v:15}]);
+        const chance = piecewise(L, [{l:1,v:6.5},{l:5,v:12.5},{l:10,v:20},{l:15,v:27.5}]);
+        const resist = piecewise(L, [{l:1,v:6},{l:5,v:10},{l:10,v:15},{l:15,v:20}]);
+        const rf = piecewise(L, [{l:1,v:8},{l:5,v:20},{l:10,v:35},{l:15,v:50}]);
+        const dmg = piecewise(L, [{l:1,v:1},{l:5,v:5},{l:10,v:10},{l:15,v:15}]);
         return `${v(L0, fmt1(chance)+"%")} chance to Mark targets, reducing all resistances by ${v(L0, fmt0(resist)+"%")} for 3.0s. Hitting Marked targets has ${v(L0, fmt0(rf)+"%")} chance to trigger Rapid Fire and deal ${v(L0, fmt0(dmg))} bonus damage.`;
       }
     },
@@ -373,9 +373,8 @@ const RANGER = {
       id:"sniper_shot", name:"Sniper Shot", type:"ACTIVE 2", max:15, cost:300, req:"Ranged Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        // fix: 160% -> 300% (+10 por level, 160 no lvl1)
-        const dmg = (L<=0) ? 150 : (160 + (L-1)*10); // L0=0 mostra algo "base", mas build começa 160 em 1
-        const stun = piecewise(L, [{l:0,v:2.2},{l:5,v:3.0},{l:10,v:4.0},{l:15,v:5.0}]);
+        const dmg = (L<=0) ? 150 : (160 + (L-1)*10);
+        const stun = piecewise(L, [{l:1,v:2.2},{l:5,v:3.0},{l:10,v:4.0},{l:15,v:5.0}]);
         return `Channels your focus into a single, devastating shot dealing ${v(L0, fmt0(dmg)+"%")} weapon max damage. The sheer kinetic force knocks the enemy back and leaves them stunned for ${v(L0, fmt1(stun)+"s")}. Moving cancels.`;
       }
     },
@@ -383,7 +382,7 @@ const RANGER = {
       id:"vampiric_arrows", name:"Vampiric Arrows", type:"PASSIVE", max:15, cost:400, req:"Ranged Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const heal = piecewise(L, [{l:0,v:6},{l:5,v:10},{l:10,v:15},{l:15,v:20}]);
+        const heal = piecewise(L, [{l:1,v:6},{l:5,v:10},{l:10,v:15},{l:15,v:20}]);
         return `Drains vitality from targets, healing you for ${v(L0, fmt0(heal)+"%")} of the damage dealt.`;
       }
     },
@@ -391,7 +390,7 @@ const RANGER = {
       id:"triple_ricochet", name:"Triple Ricochet", type:"ACTIVE 3", max:15, cost:500, req:"Ranged Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const dmg = piecewise(L, [{l:0,v:55},{l:5,v:75},{l:10,v:100},{l:15,v:125}]);
+        const dmg = piecewise(L, [{l:1,v:55},{l:5,v:75},{l:10,v:100},{l:15,v:125}]);
         return `Fires 3 shots, each dealing ${v(L0, fmt0(dmg)+"%")} weapon damage. Ricochets to enemies within 5 tiles.`;
       }
     },
@@ -399,8 +398,8 @@ const RANGER = {
       id:"frost_arrows", name:"Frost Arrows", type:"PASSIVE", max:15, cost:600, req:"Ranged Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const conv = piecewise(L, [{l:0,v:16},{l:5,v:40},{l:10,v:70},{l:15,v:100}]);
-        const slow = piecewise(L, [{l:0,v:33},{l:5,v:45},{l:10,v:60},{l:15,v:75}]);
+        const conv = piecewise(L, [{l:1,v:16},{l:5,v:40},{l:10,v:70},{l:15,v:100}]);
+        const slow = piecewise(L, [{l:1,v:33},{l:5,v:45},{l:10,v:60},{l:15,v:75}]);
         return `Converts ${v(L0, fmt0(conv)+"%")} of ranged physical damage to cold. Slows enemy movement by ${v(L0, fmt0(slow)+"%")} for 2.0s.`;
       }
     },
@@ -408,8 +407,8 @@ const RANGER = {
       id:"rain_of_arrows", name:"Rain of Arrows", type:"ACTIVE 4", max:15, cost:700, req:"Ranged Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const dur = piecewise(L, [{l:0,v:3.2},{l:5,v:4.0},{l:10,v:5.0},{l:15,v:6.0}]);
-        const dps = piecewise(L, [{l:0,v:32},{l:5,v:40},{l:10,v:50},{l:15,v:60}]);
+        const dur = piecewise(L, [{l:1,v:3.2},{l:5,v:4.0},{l:10,v:5.0},{l:15,v:6.0}]);
+        const dps = piecewise(L, [{l:1,v:32},{l:5,v:40},{l:10,v:50},{l:15,v:60}]);
         return `Rain arrows on a 5-tile radius area for ${v(L0, fmt1(dur)+"s")} dealing ${v(L0, fmt0(dps)+"%")} weapon damage per second.`;
       }
     },
@@ -425,8 +424,8 @@ const BARBARIAN = {
       id:"berserkers_blood", name:"Berserker's Blood", type:"PASSIVE", max:15, cost:100, req:"2H Melee Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const spd = piecewise(L, [{l:0,v:110},{l:5,v:150},{l:10,v:200},{l:15,v:250}]);
-        const hp = piecewise(L, [{l:0,v:18},{l:5,v:30},{l:10,v:45},{l:15,v:60}]);
+        const spd = piecewise(L, [{l:1,v:110},{l:5,v:150},{l:10,v:200},{l:15,v:250}]);
+        const hp = piecewise(L, [{l:1,v:18},{l:5,v:30},{l:10,v:45},{l:15,v:60}]);
         return `Increases Attack Speed up to ${v(L0, fmt0(spd)+"%")}, reaching max effect at ${v(L0, fmt0(hp)+"%")} Health.`;
       }
     },
@@ -434,7 +433,7 @@ const BARBARIAN = {
       id:"savage_regrowth", name:"Savage Regrowth", type:"ACTIVE 1", max:15, cost:100, req:"2H Melee Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const regen = piecewise(L, [{l:0,v:3},{l:5,v:11},{l:10,v:21},{l:15,v:31}]);
+        const regen = piecewise(L, [{l:1,v:3},{l:5,v:11},{l:10,v:21},{l:15,v:31}]);
         return `Activates below 70% Health. Regenerates up to ${v(L0, fmt0(regen)+"%")} max health based on missing HP. Cost: 1 Mana/sec while healing.`;
       }
     },
@@ -442,8 +441,8 @@ const BARBARIAN = {
       id:"primal_strength", name:"Primal Strength", type:"PASSIVE", max:15, cost:200, req:"2H Melee Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const dmg = piecewise(L, [{l:0,v:10},{l:5,v:50},{l:10,v:100},{l:15,v:150}]);
-        const hp = piecewise(L, [{l:0,v:18},{l:5,v:30},{l:10,v:45},{l:15,v:60}]);
+        const dmg = piecewise(L, [{l:1,v:10},{l:5,v:50},{l:10,v:100},{l:15,v:150}]);
+        const hp = piecewise(L, [{l:1,v:18},{l:5,v:30},{l:10,v:45},{l:15,v:60}]);
         return `Deals up to ${v(L0, fmt0(dmg)+"%")} bonus weapon damage, reaching max effect at ${v(L0, fmt0(hp)+"%")} Health.`;
       }
     },
@@ -451,7 +450,7 @@ const BARBARIAN = {
       id:"burning_blood", name:"Burning Blood", type:"ACTIVE 2", max:15, cost:300, req:"2H Melee Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const extra = piecewise(L, [{l:0,v:5},{l:5,v:25},{l:10,v:50},{l:15,v:75}]);
+        const extra = piecewise(L, [{l:1,v:5},{l:5,v:25},{l:10,v:50},{l:15,v:75}]);
         return `Every attack consume 1 HP on hit and deals ${v(L0, fmt0(extra)+"%")} extra fire damage to the target and nearby enemies (AoE).`;
       }
     },
@@ -459,8 +458,8 @@ const BARBARIAN = {
       id:"brutal_strike", name:"Brutal Strike", type:"PASSIVE", max:15, cost:400, req:"2H Melee Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const chance = piecewise(L, [{l:0,v:3},{l:5,v:15},{l:10,v:30},{l:15,v:45}]);
-        const dmg = piecewise(L, [{l:0,v:1},{l:5,v:5},{l:10,v:10},{l:15,v:15}]);
+        const chance = piecewise(L, [{l:1,v:3},{l:5,v:15},{l:10,v:30},{l:15,v:45}]);
+        const dmg = piecewise(L, [{l:1,v:1},{l:5,v:5},{l:10,v:10},{l:15,v:15}]);
         return `Attacks have a ${v(L0, fmt0(chance)+"%")} chance to dealing ${v(L0, fmt0(dmg))} bonus damage and STUN the target for 1.5s.`;
       }
     },
@@ -468,7 +467,7 @@ const BARBARIAN = {
       id:"undying_rage", name:"Undying Rage", type:"ACTIVE 3", max:15, cost:500, req:"2H Melee Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const cd = piecewise(L, [{l:0,v:172},{l:5,v:140},{l:10,v:100},{l:15,v:60}]);
+        const cd = piecewise(L, [{l:1,v:172},{l:5,v:140},{l:10,v:100},{l:15,v:60}]);
         return `Immune to damage and DOUBLE weapon and pvm skills damage for 10 seconds. Cooldown: ${v(L0, fmt0(cd)+" seconds")}.`;
       }
     },
@@ -476,7 +475,7 @@ const BARBARIAN = {
       id:"primal_resistance", name:"Primal Resistance", type:"PASSIVE", max:15, cost:600, req:"2H Melee Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const red = piecewise(L, [{l:0,v:2},{l:5,v:10},{l:10,v:20},{l:15,v:30}]);
+        const red = piecewise(L, [{l:1,v:2},{l:5,v:10},{l:10,v:20},{l:15,v:30}]);
         return `Reduces incoming non-physical damage by ${v(L0, fmt0(red)+"%")}.`;
       }
     },
@@ -484,8 +483,8 @@ const BARBARIAN = {
       id:"leap_attack", name:"Leap Attack", type:"ACTIVE 4", max:15, cost:700, req:"2H Melee Weap",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const dmg = piecewise(L, [{l:0,v:60},{l:5,v:100},{l:10,v:150},{l:15,v:200}]);
-        const cd = piecewise(L, [{l:0,v:24},{l:5,v:20},{l:10,v:15},{l:15,v:10}]);
+        const dmg = piecewise(L, [{l:1,v:60},{l:5,v:100},{l:10,v:150},{l:15,v:200}]);
+        const cd = piecewise(L, [{l:1,v:24},{l:5,v:20},{l:10,v:15},{l:15,v:10}]);
         return `Leap to location causing impact damage and burning enemies for 5s. Total Damage: ${v(L0, fmt0(dmg)+"%")} weapon max damage. Stuns for 2.0s. Cost: 30% Current HP. Cooldown: ${v(L0, fmt0(cd)+"s")}.`;
       }
     },
@@ -626,7 +625,7 @@ const WIZARD = {
       id:"arcane_conductivity", name:"Arcane Conductivity", type:"PASSIVE", max:15, cost:400, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const red = piecewise(L, [{l:0,v:13},{l:3,v:19},{l:5,v:25},{l:6,v:28},{l:12,v:46},{l:15,v:55}]);
+        const red = piecewise(L, [{l:1,v:13},{l:3,v:19},{l:5,v:25},{l:6,v:28},{l:12,v:46},{l:15,v:55}]);
         return `Reduces Spell Delay by ${v(L0, fmt0(red)+"%")} when wearing Light Armor.`;
       }
     },
@@ -634,9 +633,9 @@ const WIZARD = {
       id:"mirror_image", name:"Mirror Image", type:"ACTIVE 3", max:15, cost:500, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const clones = piecewise(L, [{l:0,v:1},{l:5,v:2},{l:12,v:2},{l:15,v:3}]);
-        const stats = piecewise(L, [{l:0,v:53},{l:3,v:60},{l:5,v:66},{l:6,v:70},{l:12,v:90},{l:15,v:100}]);
-        const mana = piecewise(L, [{l:0,v:6},{l:3,v:8},{l:5,v:10},{l:6,v:11},{l:12,v:17},{l:15,v:20}]);
+        const clones = piecewise(L, [{l:1,v:1},{l:5,v:2},{l:12,v:2},{l:15,v:3}]);
+        const stats = piecewise(L, [{l:1,v:53},{l:3,v:60},{l:5,v:66},{l:6,v:70},{l:12,v:90},{l:15,v:100}]);
+        const mana = piecewise(L, [{l:1,v:6},{l:3,v:8},{l:5,v:10},{l:6,v:11},{l:12,v:17},{l:15,v:20}]);
         return `Summons ${v(L0, fmt0(clones))} Clones for 30s. Clones have ${v(L0, fmt0(stats)+"%")} of your stats/skills and restore ${v(L0, fmt0(mana)+"%")} of their damage as mana to you.`;
       }
     },
@@ -644,7 +643,7 @@ const WIZARD = {
       id:"elemental_erosion", name:"Elemental Erosion", type:"PASSIVE", max:15, cost:600, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const maxRes = piecewise(L, [{l:0,v:3},{l:3,v:9},{l:5,v:15},{l:6,v:18},{l:12,v:36},{l:15,v:45}]);
+        const maxRes = piecewise(L, [{l:1,v:3},{l:3,v:9},{l:5,v:15},{l:6,v:18},{l:12,v:36},{l:15,v:45}]);
         return `Magery spells reduce the target's resistance to their element by the amount of damage dealt (Max ${v(L0, "-"+fmt0(maxRes)+" resist")}) for 4.0s.`;
       }
     },
@@ -652,7 +651,7 @@ const WIZARD = {
       id:"disintegrate", name:"Disintegrate", type:"ACTIVE 4", max:15, cost:700, req:"Staff Equipped",
       describe:(L0)=>{
         const L = displayLevel(L0);
-        const upTo = piecewise(L, [{l:0,v:1},{l:3,v:3},{l:5,v:5},{l:6,v:6},{l:12,v:12},{l:15,v:15}]);
+        const upTo = piecewise(L, [{l:1,v:1},{l:3,v:3},{l:5,v:5},{l:6,v:6},{l:12,v:12},{l:15,v:15}]);
         return `Channel a fire that deals initial 1 damage, increasing over time up to ${v(L0, fmt0(upTo))}. Consumes mana rapidly. Moving cancels.`;
       }
     },
@@ -669,14 +668,14 @@ const PALADIN = {
       describe:(L0)=>{
         const L = displayLevel(L0);
         const mit = piecewise(L, [
-          {l:0, v:1.15},
+          {l:1, v:1.15},
           {l:5, v:1.75},
           {l:10,v:2.50},
           {l:12,v:2.80},
           {l:15,v:3.25},
         ]);
         const reflect = piecewise(L, [
-          {l:0, v:1},
+          {l:1, v:1},
           {l:5, v:5},
           {l:10,v:10},
           {l:12,v:12},
@@ -691,7 +690,7 @@ const PALADIN = {
         const L = displayLevel(L0);
         const tiles = paladinTiles(L);
         const threat = piecewise(L, [
-          {l:0, v:40},
+          {l:1, v:40},
           {l:5, v:100},
           {l:10,v:175},
           {l:12,v:205},
@@ -705,7 +704,7 @@ const PALADIN = {
       describe:(L0)=>{
         const L = displayLevel(L0);
         const reduce = piecewise(L, [
-          {l:0, v:2},
+          {l:1, v:2},
           {l:5, v:10},
           {l:10,v:20},
           {l:12,v:24},
@@ -719,7 +718,7 @@ const PALADIN = {
       describe:(L0)=>{
         const L = displayLevel(L0);
         const heal = piecewise(L, [
-          {l:0, v:55},
+          {l:1, v:55},
           {l:5, v:75},
           {l:10,v:100},
           {l:12,v:110},
@@ -733,14 +732,14 @@ const PALADIN = {
       describe:(L0)=>{
         const L = displayLevel(L0);
         const dur = piecewise(L, [
-          {l:0, v:3.8},
+          {l:1, v:3.8},
           {l:5, v:5.0},
           {l:10,v:6.5},
           {l:12,v:7.1},
           {l:15,v:8.0},
         ]);
         const cd = piecewise(L, [
-          {l:0, v:228},
+          {l:1, v:228},
           {l:5, v:180},
           {l:10,v:120},
           {l:12,v:96},
@@ -755,7 +754,7 @@ const PALADIN = {
         const L = displayLevel(L0);
         const tiles = paladinTiles(L);
         const dmg = piecewise(L, [
-          {l:0, v:8},
+          {l:1, v:8},
           {l:5, v:20},
           {l:10,v:35},
           {l:12,v:41},
@@ -769,14 +768,14 @@ const PALADIN = {
       describe:(L0)=>{
         const L = displayLevel(L0);
         const dmg = piecewise(L, [
-          {l:0, v:16},
+          {l:1, v:16},
           {l:5, v:40},
           {l:10,v:70},
           {l:12,v:82},
           {l:15,v:100},
         ]);
         const threatRed = piecewise(L, [
-          {l:0, v:8},
+          {l:1, v:8},
           {l:5, v:20},
           {l:10,v:35},
           {l:12,v:41},
@@ -790,7 +789,7 @@ const PALADIN = {
       describe:(L0)=>{
         const L = displayLevel(L0);
         const dmg = piecewise(L, [
-          {l:0, v:90},
+          {l:1, v:90},
           {l:5, v:150},
           {l:10,v:225},
           {l:12,v:255},
