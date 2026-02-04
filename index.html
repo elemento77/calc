@@ -930,7 +930,7 @@
             const drain = piecewise(L, [{ l: 1, v: 15 }, { l: 5, v: 11 }, { l: 10, v: 6 }, { l: 15, v: 1 }]);
             const flat = piecewise(L, [{ l: 1, v: 1 }, { l: 5, v: 5 }, { l: 10, v: 10 }, { l: 15, v: 15 }]);
             const heal = piecewise(L, [{ l: 1, v: 2 }, { l: 5, v: 6 }, { l: 10, v: 11 }, { l: 15, v: 16 }]);
-            return `Drains ${v(L0, fmt0(drain) + "%")} of your current HP per tick. Each tick deals ${v(L0, fmt0(flat))} damage + 1% of enemy current HP (capped at staff max damage) as physical damage and heals your minions for ${v(L0, fmt0(heal) + "%")} of their max HP.`;
+            return `Drains ${v(L0, fmt0(drain) + "%")} of your current HP per tick. Each tick deals ${v(L0, fmt0(flat))} damage as physical damage and heals your minions for ${v(L0, fmt0(heal) + "%")} of their max HP.`;
           }
         },
         {
