@@ -1012,7 +1012,10 @@
           id: "mirror_image", name: "Mirror Image", type: "ACTIVE 3", max: 15, cost: 500, req: "Staff Equipped",
           describe: (L0) => {
             const L = displayLevel(L0);
-            const clones = piecewise(L, [{ l: 1, v: 1 }, { l: 5, v: 2 }, { l: 12, v: 2 }, { l: 15, v: 3 }]);
+            let clones = 1;
+            if (L >= 15) clones = 3;
+            else if (L >= 5) clones = 2;
+
             const stats = piecewise(L, [{ l: 1, v: 53 }, { l: 3, v: 60 }, { l: 5, v: 66 }, { l: 6, v: 70 }, { l: 12, v: 90 }, { l: 15, v: 100 }]);
             const mana = piecewise(L, [{ l: 1, v: 6 }, { l: 3, v: 8 }, { l: 5, v: 10 }, { l: 6, v: 11 }, { l: 12, v: 17 }, { l: 15, v: 20 }]);
             return `Summons ${v(L0, fmt0(clones))} Clones for 30s. Clones have ${v(L0, fmt0(stats) + "%")} of your stats/skills and restore ${v(L0, fmt0(mana) + "%")} of their damage as mana to you.`;
