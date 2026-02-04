@@ -714,9 +714,14 @@
           id: "sharpshooter", name: "Sharpshooter", type: "PASSIVE", max: 15, cost: 100, req: "Ranged Weap",
           describe: (L0) => {
             const L = displayLevel(L0);
-            const tiles = piecewise(L, [{ l: 1, v: 0 }, { l: 5, v: 1 }, { l: 10, v: 2 }, { l: 15, v: 3 }]);
+            // Steps discretos: 0 até 4, 1 em 5+, 2 em 10+, 3 em 15
+            let tiles = 0;
+            if (L >= 15) tiles = 3;
+            else if (L >= 10) tiles = 2;
+            else if (L >= 5) tiles = 1;
+
             const bonus = piecewise(L, [{ l: 1, v: 16 }, { l: 5, v: 40 }, { l: 10, v: 70 }, { l: 15, v: 100 }]);
-            return `Increases attacks range by ${v(L0, "+" + fmt0(tiles))} tiles. Deals up to ${v(L0, fmt0(bonus) + "%")} bonus damage based on distance.`;
+            return `Increases attacks range by ${v(L0, "+" + tiles)} tiles. Deals up to ${v(L0, fmt0(bonus) + "%")} bonus damage based on distance.`;
           }
         },
         {
