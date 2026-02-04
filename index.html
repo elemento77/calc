@@ -747,7 +747,8 @@
           id: "sniper_shot", name: "Sniper Shot", type: "ACTIVE 2", max: 15, cost: 300, req: "Ranged Weap",
           describe: (L0) => {
             const L = displayLevel(L0);
-            const dmg = (L <= 0) ? 150 : (160 + (L - 1) * 10);
+            const eff = L > 0 ? L : 1; // Mostra stats do nível 1 se não tiver pontos
+            const dmg = 160 + (eff - 1) * 10;
             const stun = piecewise(L, [{ l: 1, v: 2.2 }, { l: 5, v: 3.0 }, { l: 10, v: 4.0 }, { l: 15, v: 5.0 }]);
             return `Channels your focus into a single, devastating shot dealing ${v(L0, fmt0(dmg) + "%")} weapon max damage. The sheer kinetic force knocks the enemy back and leaves them stunned for ${v(L0, fmt1(stun) + "s")}. Moving cancels.`;
           }
